@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Copy, Info } from "lucide-react";
 import { DRAFT_DISCLAIMER } from "@/lib/copy";
 import { Button } from "@/components/ui/Button";
+import { SendToLandlord } from "./SendToLandlord";
 
 export function DraftedMessage({ subject, message, onChange }: { subject: string; message: string; onChange: (m: string) => void }) {
   const [copied, setCopied] = useState(false);
@@ -46,6 +47,7 @@ export function DraftedMessage({ subject, message, onChange }: { subject: string
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
         {DRAFT_DISCLAIMER} Review and edit before sending, and keep a copy.
       </p>
+      <SendToLandlord subject={subject} message={message} />
     </div>
   );
 }

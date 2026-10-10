@@ -32,11 +32,14 @@ interface Transition {
   to: CaseStatus;
 }
 
+type PlanTab = "actions" | "payment" | "matches";
+
 export function DashboardClient() {
   const { userCase, loaded, update } = useCase();
   const { resources } = useResources();
   const [transition, setTransition] = useState<Transition | null>(null);
   const [justChanged, setJustChanged] = useState(false);
+  const [activeTab, setActiveTab] = useState<PlanTab>("actions");
   const latest = useRef<UserCase | null>(null);
   latest.current = userCase;
 
@@ -80,55 +83,25 @@ export function DashboardClient() {
   const recovery = userCase.caseStatus === "TRANSITION_RECOVERY";
   const actions = generateActionPlan(userCase);
   const topMatches = matchResources(resources, userCase, { limit: 4 });
+  const tabs: { id: PlanTab; label: string }[] = [
+    { id: "actions", label: "Action plan" },
+    ...(!recovery && userCase.amountOwed > 0 ? [{ id: "payment" as const, label: "Payment plan" }] : []),
+    ...(!recovery ? [{ id: "matches" as const, label: "Best matches" }] : []),
+  ];
+  // Fall back to the action plan if the selected tab disappears (e.g. after moving to recovery).
+  const currentTab = tabs.some((t) => t.id === activeTab) ? activeTab : "actions";
 
   return (
-    <div className="container-page py-8 sm:py-10">
-      <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mx-auto w-full max-w-screen-2xl px-4 py-10 sm:px-8 sm:py-12 lg:px-12">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your HomePath plan</h1>
-          <p className="text-ink-muted">Here&apos;s what you can still do next. Your plan updates as your situation changes.</p>
+          <p className="mt-1 text-ink-muted">Here&apos;s what you can still do next. Your plan updates as your situation changes.</p>
         </div>
-        <Link href="/intake" className="text-sm font-semibold text-brand-700 hover:underline">
-          Start over with new answers
-        </Link>
-      </div>
-
-      {transition && <TransitionNotice transition={transition} onDismiss={() => setTransition(null)} />}
-
-      <StatusBanner userCase={userCase} justChanged={justChanged} />
-
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
-        <div className="space-y-6">
-          {recovery && <RecoveryMode userCase={userCase} resources={resources} onBarrierChange={setBarrier} />}
-          <ActionPlan
-            key={userCase.caseStatus}
-            items={actions}
-            recovery={recovery}
-            onToggle={(id) => latest.current && commit(toggleActionCompleted(latest.current, id))}
-          />
-          {!recovery && userCase.amountOwed > 0 && (
-            <PaymentPlanCalculator key={`${userCase.amountOwed}-${userCase.availableToday}-${userCase.nextPaycheckDate}`} userCase={userCase} />
-          )}
-          {!recovery && (
-            <section aria-labelledby="top-resources">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 id="top-resources" className="text-lg font-semibold">
-                  Best matches for you
-                </h2>
-                <Link href="/resources" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
-                  All resources <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {topMatches.map((m) => (
-                  <ResourceCard key={m.resource.id} match={m} compact />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <aside className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/intake" className="text-sm font-semibold text-brand-700 hover:underline">
+            Start over with new answers
+          </Link>
           <DemoControls
             onLandlordRejected={() => applyUpdate({ type: "LANDLORD_REJECTED_PLAN", note: "Demo" })}
             onAssistanceUnavailable={() => applyUpdate({ type: "ASSISTANCE_DENIED", note: "Demo" })}
@@ -147,6 +120,67 @@ export function DashboardClient() {
               clearCase();
             }}
           />
+        </div>
+      </div>
+
+      {transition && <TransitionNotice transition={transition} onDismiss={() => setTransition(null)} />}
+
+      <StatusBanner userCase={userCase} justChanged={justChanged} />
+
+      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-12">
+        <div className="min-w-0 space-y-8">
+          {recovery && <RecoveryMode userCase={userCase} resources={resources} onBarrierChange={setBarrier} />}
+          <div role="tablist" aria-label="Your plan" className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1.5">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={currentTab === t.id}
+                aria-controls={`panel-${t.id}`}
+                onClick={() => setActiveTab(t.id)}
+                className={`flex-1 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  currentTab === t.id ? "bg-white text-brand-700 shadow-sm" : "text-ink-muted hover:text-ink"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div role="tabpanel" id={`panel-${currentTab}`} aria-labelledby={`tab-${currentTab}`}>
+            {currentTab === "actions" && (
+              <ActionPlan
+                key={userCase.caseStatus}
+                items={actions}
+                recovery={recovery}
+                onToggle={(id) => latest.current && commit(toggleActionCompleted(latest.current, id))}
+              />
+            )}
+            {currentTab === "payment" && (
+              <PaymentPlanCalculator key={`${userCase.amountOwed}-${userCase.availableToday}-${userCase.nextPaycheckDate}`} userCase={userCase} />
+            )}
+            {currentTab === "matches" && (
+              <section aria-labelledby="top-resources">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 id="top-resources" className="text-lg font-semibold">
+                    Best matches for you
+                  </h2>
+                  <Link href="/resources" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
+                    All resources <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                  {topMatches.map((m) => (
+                    <ResourceCard key={m.resource.id} match={m} compact />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+
+        <aside className="space-y-8">
           <FinancialSummary userCase={userCase} resources={resources} />
           <CaseUpdatePanel onSubmit={applyUpdate} />
           <DocumentUpload onApply={applyDocument} />
@@ -154,7 +188,7 @@ export function DashboardClient() {
         </aside>
       </div>
 
-      <p className="mt-10 rounded-xl bg-slate-100 p-4 text-sm text-ink-soft">{LEGAL_DISCLAIMER}</p>
+      <p className="mt-12 rounded-xl bg-slate-100 p-5 text-sm text-ink-soft">{LEGAL_DISCLAIMER}</p>
     </div>
   );
 }

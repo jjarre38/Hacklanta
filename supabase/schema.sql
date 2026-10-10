@@ -138,3 +138,44 @@ alter table resources     enable row level security;
 
 drop policy if exists "resources are public" on resources;
 create policy "resources are public" on resources for select using (true);
+
+-- ------------------------------------------------------ iMessage agent (Photon)
+-- A subscription links one case to one iMessage handle (phone or email).
+-- Linking is user-initiated: the dashboard issues a short-lived code and the
+-- user texts "LINK <code>" to the agent, which proves they own the handle and
+-- records their opt-in. Texting STOP sets status to STOPPED.
+create table if not exists imessage_subscriptions (
+  id                         uuid primary key default gen_random_uuid(),
+  case_id                    text not null references user_cases(id) on delete cascade,
+  session_id                 text not null,
+  status                     text not null default 'PENDING'
+                             check (status in ('PENDING','ACTIVE','STOPPED')),
+  link_code                  text unique,
+  link_code_expires_at       timestamptz,
+  handle                     text,                -- phone (+1...) or Apple ID email
+  chat_id                    text,                -- Messages chat to reply into
+  last_notified_status       text,
+  pending_update             jsonb,               -- CaseUpdate awaiting YES/NO
+  pending_update_expires_at  timestamptz,
+  opted_in_at                timestamptz,
+  created_at                 timestamptz not null default now(),
+  updated_at                 timestamptz not null default now()
+);
+create index if not exists imessage_subscriptions_case_idx on imessage_subscriptions (case_id);
+create index if not exists imessage_subscriptions_session_idx on imessage_subscriptions (session_id);
+create unique index if not exists imessage_subscriptions_active_handle_idx
+  on imessage_subscriptions (handle) where status = 'ACTIVE';
+
+-- One row per notification sent; the unique key prevents duplicate reminders.
+create table if not exists imessage_notifications (
+  id               uuid primary key default gen_random_uuid(),
+  subscription_id  uuid not null references imessage_subscriptions(id) on delete cascade,
+  dedupe_key       text not null,
+  kind             text not null,
+  body             text not null,
+  sent_at          timestamptz not null default now(),
+  unique (subscription_id, dedupe_key)
+);
+
+alter table imessage_subscriptions enable row level security;
+alter table imessage_notifications enable row level security;
