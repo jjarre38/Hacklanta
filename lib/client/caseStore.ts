@@ -6,11 +6,12 @@ import { userCaseSchema } from "@/lib/validation/case";
 import { reclassify } from "@/lib/services/caseService";
 import { makeId } from "@/lib/format";
 
-// Guest cases stay in this browser until cleared. No background server sync.
+// The browser copy is always the working case. Guests keep it here until cleared;
+// when signed in, lib/client/account.ts mirrors every change to the user's account.
 
 const CASE_KEY = "homepath:case";
 const SESSION_KEY = "homepath:session";
-const CHANGE_EVENT = "homepath:case-changed";
+export const CHANGE_EVENT = "homepath:case-changed";
 
 export function getSessionId(): string {
   if (typeof window === "undefined") return "";

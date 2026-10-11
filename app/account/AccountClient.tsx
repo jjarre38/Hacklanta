@@ -1,0 +1,275 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import clsx from "clsx";
+import { AlertCircle, CheckCircle2, CloudOff, Loader2, LogOut, Sparkles, UserRound } from "lucide-react";
+import { signIn, signInDemo, signOut, signUp, useAccount } from "@/lib/client/account";
+import { clearCase, useCase } from "@/lib/client/caseStore";
+import { DEMO_ACCOUNT } from "@/lib/demo/demoAccount";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
+type Mode = "sign-in" | "sign-up";
+
+export function AccountClient() {
+  const account = useAccount();
+
+  return (
+    <div className="container-page max-w-lg py-8 sm:py-12">
+      {account.status === "loading" && (
+        <div className="flex items-center justify-center gap-2 py-16 text-ink-muted" aria-busy="true">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Checking your account…
+        </div>
+      )}
+      {account.status === "unconfigured" && <NotConfigured />}
+      {account.status === "signed-out" && <SignInForm />}
+      {account.status === "signed-in" && <SignedIn />}
+    </div>
+  );
+}
+
+function SignInForm() {
+  const router = useRouter();
+  const [mode, setMode] = useState<Mode>("sign-in");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState<"form" | "demo" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy("form");
+    setError(null);
+    setNotice(null);
+    if (mode === "sign-in") {
+      const result = await signIn(email, password);
+      if (result.error) setError(result.error);
+      else router.push("/dashboard");
+    } else {
+      const result = await signUp(email, password);
+      if (result.error) setError(result.error);
+      else if (result.needsConfirmation) setNotice("Check your email for a link to confirm your account, then sign in.");
+      else router.push("/dashboard");
+    }
+    setBusy(null);
+  }
+
+  async function useDemo() {
+    setBusy("demo");
+    setError(null);
+    setNotice(null);
+    const result = await signInDemo();
+    if (result.error) setError(`Demo sign-in failed: ${result.error} (Has the demo account been created? Run npm run db:demo-account.)`);
+    else router.push("/dashboard");
+    setBusy(null);
+  }
+
+  return (
+    <>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{mode === "sign-in" ? "Sign in" : "Create an account"}</h1>
+      <p className="mt-1 text-ink-soft">Save your plan to an account so you can come back to it on any device. You can also keep using HomePath without one.</p>
+
+      <Card className="mt-6">
+        <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account">
+          {(["sign-in", "sign-up"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => {
+                setMode(m);
+                setError(null);
+                setNotice(null);
+              }}
+              className={clsx(
+                "rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+                mode === m ? "bg-white text-brand-700 shadow-sm" : "text-ink-muted hover:text-ink",
+              )}
+            >
+              {m === "sign-in" ? "Sign in" : "Create account"}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label htmlFor="account-email" className="field-label">
+              Email
+            </label>
+            <input
+              id="account-email"
+              type="email"
+              autoComplete="email"
+              required
+              className="field-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="account-password" className="field-label">
+              Password
+            </label>
+            <input
+              id="account-password"
+              type="password"
+              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              required
+              minLength={8}
+              className="field-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            {mode === "sign-up" && <p className="mt-1 text-xs text-ink-muted">At least 8 characters.</p>}
+          </div>
+          {error && (
+            <p className="flex items-start gap-2 rounded-xl bg-coral-50 p-3 text-sm text-coral-700" role="alert">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {error}
+            </p>
+          )}
+          {notice && (
+            <p className="flex items-start gap-2 rounded-xl bg-sage-50 p-3 text-sm text-sage-700" role="status">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {notice}
+            </p>
+          )}
+          <Button type="submit" className="w-full" disabled={busy !== null}>
+            {busy === "form" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+            {mode === "sign-in" ? "Sign in" : "Create account"}
+          </Button>
+        </form>
+        <p className="mt-4 text-xs text-ink-muted">
+          {mode === "sign-in"
+            ? "Signing in loads the plan saved to your account."
+            : "If you've already started a plan in this browser, it will be saved to your new account."}
+        </p>
+      </Card>
+
+      <div className="mt-5 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/70 p-4">
+        <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+          <Sparkles className="h-4 w-4 text-amber-700" aria-hidden /> Demo account
+        </p>
+        <p className="mt-1 text-sm text-amber-900/80">
+          Sign in as Maria, our fictional demo tenant: <span className="font-mono">{DEMO_ACCOUNT.email}</span> /{" "}
+          <span className="font-mono">{DEMO_ACCOUNT.password}</span>. Anyone can use it, so don&apos;t enter real information.
+        </p>
+        <Button variant="outline" size="sm" className="mt-3 border-amber-300" onClick={useDemo} disabled={busy !== null}>
+          {busy === "demo" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          Use the demo account
+        </Button>
+      </div>
+    </>
+  );
+}
+
+function SignedIn() {
+  const account = useAccount();
+  const { userCase } = useCase();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  return (
+    <>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your account</h1>
+      <Card className="mt-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+            <UserRound className="h-5 w-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm text-ink-muted">Signed in as</p>
+            <p className="truncate font-semibold">{account.email}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl bg-slate-50 p-3 text-sm" role="status">
+          {account.sync === "syncing" && (
+            <p className="flex items-center gap-2 text-ink-soft">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Saving…
+            </p>
+          )}
+          {account.sync === "saved" && (
+            <p className="flex items-center gap-2 text-sage-700">
+              <CheckCircle2 className="h-4 w-4" aria-hidden /> Your plan is saved to your account.
+            </p>
+          )}
+          {account.sync === "idle" && <p className="text-ink-soft">No plan saved yet. Build one and it will be saved here automatically.</p>}
+          {account.sync === "error" && (
+            <p className="flex items-start gap-2 text-coral-700">
+              <CloudOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {account.syncError}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <ButtonLink href={userCase ? "/dashboard" : "/intake"} className="flex-1">
+            {userCase ? "Go to my plan" : "Build my plan"}
+          </ButtonLink>
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={signingOut}
+            onClick={async () => {
+              setSigningOut(true);
+              await signOut();
+            }}
+          >
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <LogOut className="h-4 w-4" aria-hidden />}
+            Sign out
+          </Button>
+        </div>
+        <p className="mt-3 text-xs text-ink-muted">Signing out removes your plan from this browser. It stays saved in your account.</p>
+      </Card>
+
+      {userCase && (
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
+          {confirmDelete ? (
+            <>
+              <p className="font-semibold">Delete your saved plan?</p>
+              <p className="mt-1 text-ink-soft">This removes it from your account and this browser. It can&apos;t be undone.</p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  size="sm"
+                  className="bg-coral-600 hover:bg-coral-700"
+                  onClick={() => {
+                    clearCase();
+                    setConfirmDelete(false);
+                  }}
+                >
+                  Delete plan
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          ) : (
+            <button type="button" onClick={() => setConfirmDelete(true)} className="font-semibold text-coral-700 hover:underline">
+              Delete my saved plan
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function NotConfigured() {
+  return (
+    <>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Accounts</h1>
+      <Card className="mt-6">
+        <p className="font-semibold">Accounts aren&apos;t set up on this site yet.</p>
+        <p className="mt-1 text-sm text-ink-soft">
+          You can still use HomePath — your plan is saved in this browser. To turn on accounts, add the Supabase keys to the server environment
+          and follow the &ldquo;Accounts&rdquo; steps in the README.
+        </p>
+        <ButtonLink href="/dashboard" variant="outline" className="mt-4">
+          Continue without an account
+        </ButtonLink>
+      </Card>
+    </>
+  );
+}

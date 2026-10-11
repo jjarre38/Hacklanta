@@ -187,6 +187,7 @@ export function DashboardClient() {
           {current === "actions" && (
             <>
               {recovery && <RecoveryMode userCase={userCase} resources={resources} onBarrierChange={setBarrier} />}
+              <VoicePlan userCase={userCase} actions={actions} compact />
               {actionPlan}
             </>
           )}

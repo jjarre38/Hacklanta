@@ -4,7 +4,7 @@ export const LEGAL_DISCLAIMER =
   "HomePath provides general legal information, not legal advice. If your situation is legally complex or time-sensitive, contact qualified legal assistance.";
 
 export const PRIVACY_NOTE =
-  "No account needed. Your answers are saved only in this browser for this session. We never ask for your SSN or bank details.";
+  "No account needed. Without one, your answers stay in this browser; if you sign in, your plan is also saved to your account. We never ask for your SSN or bank details.";
 
 export const MAY_QUALIFY =
   "You may qualify based on the information provided. Confirm eligibility directly with the organization.";

@@ -6,6 +6,7 @@ import type { UserCase } from "@/types";
 import { buildPaymentPlan } from "@/lib/services/paymentPlanService";
 import { daysUntil, formatDate, formatMoney, parseDate } from "@/lib/format";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { Expandable } from "@/components/ui/Expandable";
 
 interface TimelineEntry {
   id: string;
@@ -50,14 +51,16 @@ export function CaseTimeline({ userCase }: { userCase: UserCase }) {
   return (
     <Card>
       <CardHeader icon={<History className="h-5 w-5" />} title="Timeline" description="Upcoming deadlines and what's happened so far." />
-      {upcoming.length > 0 && (
-        <>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-muted">Coming up</p>
-          <Timeline entries={upcoming} />
-        </>
-      )}
-      <p className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-ink-muted">History</p>
-      <Timeline entries={past} />
+      <Expandable collapsedHeight={360} noun="events">
+        {upcoming.length > 0 && (
+          <>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-muted">Coming up</p>
+            <Timeline entries={upcoming} />
+          </>
+        )}
+        <p className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-ink-muted">History</p>
+        <Timeline entries={past} />
+      </Expandable>
     </Card>
   );
 }

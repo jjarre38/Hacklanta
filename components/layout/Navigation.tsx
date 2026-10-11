@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { Home, Menu, X } from "lucide-react";
+import { Home, Menu, UserRound, X } from "lucide-react";
 import { useCase } from "@/lib/client/caseStore";
+import { startAccountSync, useAccount } from "@/lib/client/account";
 
 const LINKS = [
   { href: "/dashboard", label: "My Plan" },
@@ -37,6 +38,10 @@ export function Navigation() {
   const { userCase, loaded } = useCase();
 
   useEffect(() => setOpen(false), [pathname]);
+  // The nav is on every page, so it's where account sync starts.
+  useEffect(() => startAccountSync(), []);
+  const account = useAccount();
+  const signedIn = account.status === "signed-in";
 
   const container = WIDE_PAGES.some((p) => pathname.startsWith(p)) ? "container-wide" : "container-page";
 
@@ -57,6 +62,16 @@ export function Navigation() {
               {l.label}
             </Link>
           ))}
+          <Link
+            href="/account"
+            className={clsx(
+              "ml-1 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              pathname.startsWith("/account") ? "bg-brand-50 text-brand-700" : "text-ink-soft hover:bg-slate-100 hover:text-ink",
+            )}
+          >
+            <UserRound className="h-4 w-4" aria-hidden />
+            {signedIn ? "Account" : "Sign in"}
+          </Link>
           {loaded && !userCase && (
             <Link href="/intake" className="ml-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
               Get started
@@ -88,6 +103,16 @@ export function Navigation() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              href="/account"
+              className={clsx(
+                "flex items-center gap-2 rounded-lg px-3 py-3 text-base font-medium",
+                pathname.startsWith("/account") ? "bg-brand-50 text-brand-700" : "text-ink hover:bg-slate-100",
+              )}
+            >
+              <UserRound className="h-5 w-5" aria-hidden />
+              {signedIn ? `Account (${account.email})` : "Sign in or create account"}
+            </Link>
             {loaded && !userCase && (
               <Link href="/intake" className="mt-2 rounded-lg bg-brand-600 px-3 py-3 text-center text-base font-semibold text-white">
                 Build My Action Plan
