@@ -56,10 +56,13 @@ export function useCase() {
     sync();
     setLoaded(true);
     window.addEventListener(CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
+    const syncCaseStorage = (event: StorageEvent) => {
+      if (event.key === CASE_KEY || event.key === null) sync();
+    };
+    window.addEventListener("storage", syncCaseStorage);
     return () => {
       window.removeEventListener(CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
+      window.removeEventListener("storage", syncCaseStorage);
     };
   }, []);
 

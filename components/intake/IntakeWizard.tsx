@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -28,6 +30,7 @@ const DEFAULTS: Partial<IntakeValues> = {
 };
 
 export function IntakeWizard() {
+  const { text, tr } = useI18n();
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +81,7 @@ export function IntakeWizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: getSessionId(), intake: values }),
       });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      if (!res.ok) throw new Error(tr("Request failed ({0})", { 0: res.status }));
       userCase = (await res.json()).case as UserCase;
     } catch {
       // Same deterministic logic runs client-side if the API is unreachable.
@@ -106,15 +109,14 @@ export function IntakeWizard() {
     <div className="mx-auto w-full max-w-2xl">
       {newAccount && (
         <p className="mb-5 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900" role="status">
-          <span className="font-semibold">Welcome to HomePath!</span> Answer these questions to build your plan. It&apos;ll be saved to your account
-          {account.email ? ` (${account.email})` : ""}.
+          <span className="font-semibold">{tr("Welcome to HomePath!")}</span> {tr(" Answer these questions to build your plan. It'll be saved to your account")}{account.email ? ` (${account.email})` : ""}.
         </p>
       )}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-violet-800">{step.group}</p>
+          <p className="text-sm font-semibold text-violet-800">{text(step.group)}</p>
           <p className="text-sm text-ink-muted">
-            Step {stepIndex + 1} of {INTAKE_STEPS.length}
+            {tr("Step ")}{stepIndex + 1} {tr(" of ")}{INTAKE_STEPS.length}
           </p>
         </div>
         <button
@@ -122,10 +124,9 @@ export function IntakeWizard() {
           onClick={loadMaria}
           className="inline-flex items-center gap-1.5 self-start rounded-lg border border-dashed border-amber-400 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100"
         >
-          <Sparkles className="h-4 w-4" aria-hidden /> Demo: Load Maria&apos;s Case
-        </button>
+          <Sparkles className="h-4 w-4" aria-hidden /> {tr(" Demo: Load Maria's Case")}</button>
       </div>
-      <ProgressBar tone="violet" value={stepIndex + 1} max={INTAKE_STEPS.length} label={`Progress: step ${stepIndex + 1} of ${INTAKE_STEPS.length}`} className="mb-6 [&>div:first-child]:sr-only" />
+      <ProgressBar tone="violet" value={stepIndex + 1} max={INTAKE_STEPS.length} label={tr("Progress: step {0} of {1}", { 0: stepIndex + 1, 1: INTAKE_STEPS.length })} className="mb-6 [&>div:first-child]:sr-only" />
 
       <Card className="p-6 sm:p-8">
         <FormProvider {...form}>
@@ -136,8 +137,8 @@ export function IntakeWizard() {
             }}
             noValidate
           >
-            <h1 className="text-2xl font-bold tracking-tight">{step.title}</h1>
-            <p className="mt-1 text-ink-soft">{step.subtitle}</p>
+            <h1 className="text-2xl font-bold tracking-tight">{text(step.title)}</h1>
+            <p className="mt-1 text-ink-soft">{text(step.subtitle)}</p>
 
             <div key={step.id} className="mt-7">
               {step.id === "location" && <LocationStep />}
@@ -152,26 +153,24 @@ export function IntakeWizard() {
 
             {submitError && (
               <p className="mt-6 rounded-xl bg-coral-50 p-3 text-sm text-coral-700" role="alert">
-                {submitError}
+                {text(submitError)}
               </p>
             )}
 
             <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-6">
               <Button variant="ghost" onClick={back} disabled={stepIndex === 0 || submitting}>
-                <ArrowLeft className="h-4 w-4" aria-hidden /> Back
-              </Button>
+                <ArrowLeft className="h-4 w-4" aria-hidden /> {tr(" Back")}</Button>
               <Button type="submit" size="lg" className="!bg-[#B9A3E3] hover:!bg-[#7353BA]" disabled={submitting || blockedOutOfArea}>
                 {submitting ? (
                   <>
-                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Building your plan…
-                  </>
+                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> {tr(" Building your plan…")}</>
                 ) : isLast ? (
                   <>
-                    Build my plan <ArrowRight className="h-5 w-5" aria-hidden />
+                    {tr("Build my plan ")}<ArrowRight className="h-5 w-5" aria-hidden />
                   </>
                 ) : (
                   <>
-                    Continue <ArrowRight className="h-5 w-5" aria-hidden />
+                    {tr("Continue ")}<ArrowRight className="h-5 w-5" aria-hidden />
                   </>
                 )}
               </Button>
@@ -182,7 +181,7 @@ export function IntakeWizard() {
 
       <p className="mt-5 flex items-start justify-center gap-2 text-center text-sm text-ink-muted">
         <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-        {PRIVACY_NOTE}
+        {text(PRIVACY_NOTE)}
       </p>
     </div>
   );

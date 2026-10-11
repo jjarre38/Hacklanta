@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useState } from "react";
 import type { UserCase } from "@/types";
 import { useCase } from "@/lib/client/caseStore";
@@ -41,6 +43,7 @@ function quickCase(n: QuickNumbers): UserCase {
 }
 
 export function PaymentPlanClient() {
+  const { text, tr } = useI18n();
   const { userCase, loaded } = useCase();
   const [numbers, setNumbers] = useState<QuickNumbers>({ amountOwed: "", availableToday: "", monthlyRent: "", nextPaycheckAmount: "", nextPaycheckDate: "" });
   const [manual, setManual] = useState<UserCase | null>(null);
@@ -50,16 +53,16 @@ export function PaymentPlanClient() {
   if (manual) return <PaymentPlanCalculator key={JSON.stringify(numbers)} userCase={manual} />;
 
   const fields: { key: keyof QuickNumbers; label: string; type: "number" | "date" }[] = [
-    { key: "amountOwed", label: "How much do you owe?", type: "number" },
-    { key: "availableToday", label: "How much can you pay today?", type: "number" },
-    { key: "monthlyRent", label: "Monthly rent", type: "number" },
-    { key: "nextPaycheckAmount", label: "Next paycheck amount (optional)", type: "number" },
-    { key: "nextPaycheckDate", label: "Next payday (optional)", type: "date" },
+    { key: "amountOwed", label: tr("How much do you owe?"), type: "number" },
+    { key: "availableToday", label: tr("How much can you pay today?"), type: "number" },
+    { key: "monthlyRent", label: tr("Monthly rent"), type: "number" },
+    { key: "nextPaycheckAmount", label: tr("Next paycheck amount (optional)"), type: "number" },
+    { key: "nextPaycheckDate", label: tr("Next payday (optional)"), type: "date" },
   ];
 
   return (
     <Card>
-      <p className="text-ink-soft">Enter a few numbers to build a plan. Nothing here is saved.</p>
+      <p className="text-ink-soft">{tr("Enter a few numbers to build a plan. Nothing here is saved.")}</p>
       <form
         className="mt-5 grid gap-4 sm:grid-cols-2"
         onSubmit={(e) => {
@@ -70,7 +73,7 @@ export function PaymentPlanClient() {
         {fields.map((f) => (
           <div key={f.key}>
             <label htmlFor={`pp-${f.key}`} className="field-label">
-              {f.label}
+              {text(f.label)}
             </label>
             <input
               id={`pp-${f.key}`}
@@ -85,8 +88,7 @@ export function PaymentPlanClient() {
         ))}
         <div className="sm:col-span-2">
           <Button type="submit" disabled={!(Number(numbers.amountOwed) > 0)}>
-            Build my payment plan
-          </Button>
+            {tr("Build my payment plan")}</Button>
         </div>
       </form>
     </Card>

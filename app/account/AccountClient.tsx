@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
@@ -13,6 +15,7 @@ import { Card } from "@/components/ui/Card";
 type Mode = "sign-in" | "sign-up";
 
 export function AccountClient() {
+  const { tr } = useI18n();
   const router = useRouter();
   const account = useAccount();
   const { userCase } = useCase();
@@ -29,8 +32,7 @@ export function AccountClient() {
     <div className="container-page max-w-lg py-8 sm:py-12">
       {account.status === "loading" && (
         <div className="flex items-center justify-center gap-2 py-16 text-ink-muted" aria-busy="true">
-          <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Checking your account…
-        </div>
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> {tr(" Checking your account…")}</div>
       )}
       {account.status === "unconfigured" && <NotConfigured />}
       {account.status === "signed-out" && <SignInForm fromPlan={fromPlan} onSignedIn={() => setJustSignedIn(true)} />}
@@ -40,14 +42,15 @@ export function AccountClient() {
 }
 
 function Redirecting() {
+  const { tr } = useI18n();
   return (
     <div className="flex items-center justify-center gap-2 py-16 text-ink-muted" aria-busy="true">
-      <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Loading your plan…
-    </div>
+      <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> {tr(" Loading your plan…")}</div>
   );
 }
 
 function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: () => void }) {
+  const { text, tr } = useI18n();
   const hasLocalPlan = Boolean(useCase().userCase);
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
@@ -80,29 +83,27 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
     setError(null);
     setNotice(null);
     const result = await signInDemo();
-    if (result.error) setError(`Demo sign-in failed: ${result.error} (Has the demo account been created? Run npm run db:demo-account.)`);
+    if (result.error) setError(result.error);
     else onSignedIn();
     setBusy(null);
   }
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{mode === "sign-in" ? "Sign in" : "Create an account"}</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{mode === "sign-in" ? tr("Sign in") : tr("Create an account")}</h1>
       <p className="mt-1 text-ink-soft">
-        Your plan is saved to your account so you can come back to it on any device. Resources and Know Your Rights stay open to everyone.
-      </p>
+        {tr("Your plan is saved to your account so you can come back to it on any device. Resources and Know Your Rights stay open to everyone.")}</p>
       {fromPlan && (
         <p className="mt-4 flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900" role="status">
           <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <span>
-            Sign in or create an account to see your plan.
-            {hasLocalPlan && " The answers you just gave will be saved to your new account."}
+            {tr("Sign in or create an account to see your plan.")}{hasLocalPlan && tr(" The answers you just gave will be saved to your new account.")}
           </span>
         </p>
       )}
 
       <Card className="mt-6">
-        <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account">
+        <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Account")}>
           {(["sign-in", "sign-up"] as Mode[]).map((m) => (
             <button
               key={m}
@@ -119,7 +120,7 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
                 mode === m ? "bg-white text-brand-700 shadow-sm" : "text-ink-muted hover:text-ink",
               )}
             >
-              {m === "sign-in" ? "Sign in" : "Create account"}
+              {m === "sign-in" ? tr("Sign in") : tr("Create account")}
             </button>
           ))}
         </div>
@@ -127,8 +128,7 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label htmlFor="account-email" className="field-label">
-              Email
-            </label>
+              {tr("Email")}</label>
             <input
               id="account-email"
               type="email"
@@ -141,8 +141,7 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
           </div>
           <div>
             <label htmlFor="account-password" className="field-label">
-              Password
-            </label>
+              {tr("Password")}</label>
             <div className="relative">
               <input
                 id="account-password"
@@ -157,7 +156,7 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? tr("Hide password") : tr("Show password")}
                 aria-pressed={showPassword}
                 aria-controls="account-password"
                 className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-ink-muted hover:text-ink"
@@ -165,48 +164,46 @@ function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: (
                 {showPassword ? <EyeOff className="h-5 w-5" aria-hidden /> : <Eye className="h-5 w-5" aria-hidden />}
               </button>
             </div>
-            {mode === "sign-up" && <p className="mt-1 text-xs text-ink-muted">At least 8 characters.</p>}
+            {mode === "sign-up" && <p className="mt-1 text-xs text-ink-muted">{tr("At least 8 characters.")}</p>}
           </div>
           {error && (
             <p className="flex items-start gap-2 rounded-xl bg-coral-50 p-3 text-sm text-coral-700" role="alert">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {error}
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {text(error)}
             </p>
           )}
           {notice && (
             <p className="flex items-start gap-2 rounded-xl bg-sage-50 p-3 text-sm text-sage-700" role="status">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {notice}
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {text(notice)}
             </p>
           )}
           <Button type="submit" className="w-full" disabled={busy !== null}>
             {busy === "form" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-            {mode === "sign-in" ? "Sign in" : "Create account"}
+            {mode === "sign-in" ? tr("Sign in") : tr("Create account")}
           </Button>
         </form>
         <p className="mt-4 text-xs text-ink-muted">
           {mode === "sign-in"
-            ? "Signing in loads the plan saved to your account."
-            : "If you've already started a plan in this browser, it will be saved to your new account."}
+            ? tr("Signing in loads the plan saved to your account.")
+            : tr("If you've already started a plan in this browser, it will be saved to your new account.")}
         </p>
       </Card>
 
       <div className="mt-5 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/70 p-4">
         <p className="flex items-center gap-2 text-sm font-semibold text-amber-900">
-          <Sparkles className="h-4 w-4 text-amber-700" aria-hidden /> Demo account
-        </p>
+          <Sparkles className="h-4 w-4 text-amber-700" aria-hidden /> {tr(" Demo account")}</p>
         <p className="mt-1 text-sm text-amber-900/80">
-          Sign in as Maria, our fictional demo tenant: <span className="font-mono">{DEMO_ACCOUNT.email}</span> /{" "}
-          <span className="font-mono">{DEMO_ACCOUNT.password}</span>. Anyone can use it, so don&apos;t enter real information.
-        </p>
+          {tr("Sign in as Maria, our fictional demo tenant: ")}<span className="font-mono">{DEMO_ACCOUNT.email}</span> /{" "}
+          <span className="font-mono">{DEMO_ACCOUNT.password}</span>{tr(". Anyone can use it, so don't enter real information.")}</p>
         <Button variant="outline" size="sm" className="mt-3 border-amber-300" onClick={useDemo} disabled={busy !== null}>
           {busy === "demo" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-          Use the demo account
-        </Button>
+          {tr("Use the demo account")}</Button>
       </div>
     </>
   );
 }
 
 function SignedIn() {
+  const { text, tr } = useI18n();
   const account = useAccount();
   const { userCase } = useCase();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -214,14 +211,14 @@ function SignedIn() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your account</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("Your account")}</h1>
       <Card className="mt-6">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700">
             <UserRound className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="text-sm text-ink-muted">Signed in as</p>
+            <p className="text-sm text-ink-muted">{tr("Signed in as")}</p>
             <p className="truncate font-semibold">{account.email}</p>
           </div>
         </div>
@@ -229,25 +226,23 @@ function SignedIn() {
         <div className="mt-5 rounded-xl bg-slate-50 p-3 text-sm" role="status">
           {account.sync === "syncing" && (
             <p className="flex items-center gap-2 text-ink-soft">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Saving…
-            </p>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {tr(" Saving…")}</p>
           )}
           {account.sync === "saved" && (
             <p className="flex items-center gap-2 text-sage-700">
-              <CheckCircle2 className="h-4 w-4" aria-hidden /> Your plan is saved to your account.
-            </p>
+              <CheckCircle2 className="h-4 w-4" aria-hidden /> {tr(" Your plan is saved to your account.")}</p>
           )}
-          {account.sync === "idle" && <p className="text-ink-soft">No plan saved yet. Build one and it will be saved here automatically.</p>}
+          {account.sync === "idle" && <p className="text-ink-soft">{tr("No plan saved yet. Build one and it will be saved here automatically.")}</p>}
           {account.sync === "error" && (
             <p className="flex items-start gap-2 text-coral-700">
-              <CloudOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {account.syncError}
+              <CloudOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {text(account.syncError)}
             </p>
           )}
         </div>
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <ButtonLink href={userCase ? "/dashboard" : "/intake"} className="flex-1">
-            {userCase ? "Go to my plan" : "Build my plan"}
+            {userCase ? tr("Go to my plan") : tr("Build my plan")}
           </ButtonLink>
           <Button
             variant="outline"
@@ -259,18 +254,17 @@ function SignedIn() {
             }}
           >
             {signingOut ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <LogOut className="h-4 w-4" aria-hidden />}
-            Sign out
-          </Button>
+            {tr("Sign out")}</Button>
         </div>
-        <p className="mt-3 text-xs text-ink-muted">Signing out removes your plan from this browser. It stays saved in your account.</p>
+        <p className="mt-3 text-xs text-ink-muted">{tr("Signing out removes your plan from this browser. It stays saved in your account.")}</p>
       </Card>
 
       {userCase && (
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
           {confirmDelete ? (
             <>
-              <p className="font-semibold">Delete your saved plan?</p>
-              <p className="mt-1 text-ink-soft">This removes it from your account and this browser. It can&apos;t be undone.</p>
+              <p className="font-semibold">{tr("Delete your saved plan?")}</p>
+              <p className="mt-1 text-ink-soft">{tr("This removes it from your account and this browser. It can't be undone.")}</p>
               <div className="mt-3 flex gap-2">
                 <Button
                   size="sm"
@@ -280,17 +274,14 @@ function SignedIn() {
                     setConfirmDelete(false);
                   }}
                 >
-                  Delete plan
-                </Button>
+                  {tr("Delete plan")}</Button>
                 <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
-                  Cancel
-                </Button>
+                  {tr("Cancel")}</Button>
               </div>
             </>
           ) : (
             <button type="button" onClick={() => setConfirmDelete(true)} className="font-semibold text-coral-700 hover:underline">
-              Delete my saved plan
-            </button>
+              {tr("Delete my saved plan")}</button>
           )}
         </div>
       )}
@@ -299,18 +290,16 @@ function SignedIn() {
 }
 
 function NotConfigured() {
+  const { tr } = useI18n();
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Accounts</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("Accounts")}</h1>
       <Card className="mt-6">
-        <p className="font-semibold">Accounts aren&apos;t set up on this site yet.</p>
+        <p className="font-semibold">{tr("Accounts aren't set up on this site yet.")}</p>
         <p className="mt-1 text-sm text-ink-soft">
-          You can still use HomePath — your plan is saved in this browser. To turn on accounts, add the Supabase keys to the server environment
-          and follow the &ldquo;Accounts&rdquo; steps in the README.
-        </p>
+          {tr("You can still use HomePath — your plan is saved in this browser. To turn on accounts, add the Supabase keys to the server environment and follow the “Accounts” steps in the README.")}</p>
         <ButtonLink href="/dashboard" variant="outline" className="mt-4">
-          Continue without an account
-        </ButtonLink>
+          {tr("Continue without an account")}</ButtonLink>
       </Card>
     </>
   );

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/i18n/server";
 import { HousingClient } from "./HousingClient";
 
-export const metadata: Metadata = { title: "Affordable housing" };
+export function generateMetadata() { return pageMetadata("Affordable housing"); }
 
 export default function HousingPage() {
   return <HousingClient />;

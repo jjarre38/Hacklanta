@@ -1,6 +1,11 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 export function DashboardSkeleton() {
+  const { tr } = useI18n();
   return (
-    <div className="container-wide animate-pulse py-10 sm:py-12" aria-busy="true" aria-label="Loading your plan">
+    <div className="container-wide animate-pulse py-10 sm:py-12" aria-busy="true" aria-label={tr("Loading your plan")}>
       <div className="h-8 w-64 rounded-lg bg-slate-200" />
       <div className="mt-2 h-4 w-96 max-w-full rounded bg-slate-200" />
       <div className="mt-6 h-48 rounded-2xl bg-slate-200" />

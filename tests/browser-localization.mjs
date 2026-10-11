@@ -1,0 +1,144 @@
+// Optional browser checks. Install Playwright outside the app and set
+// HOMEPATH_PLAYWRIGHT_PATH to its ESM entry; no application dependency is required.
+import assert from 'node:assert/strict';
+const { chromium } = await import(process.env.HOMEPATH_PLAYWRIGHT_PATH || 'playwright');
+const base = process.env.HOMEPATH_TEST_URL || 'http://127.0.0.1:3100';
+const browser = await chromium.launch({ executablePath: process.env.HOMEPATH_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+const failures = [];
+try {
+ const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+ const page = await context.newPage();
+ const requests = [];
+ page.on('request', request => requests.push({ url: request.url(), method: request.method() }));
+ page.on('pageerror', error => failures.push(error.message));
+ await context.route('**/*', route => new URL(route.request().url()).origin === new URL(base).origin ? route.continue() : route.abort());
+ const change = async locale => {
+   const before = requests.length;
+   const navigation = await page.evaluate(() => performance.getEntriesByType('navigation').length);
+   await page.getByRole('combobox', { name: 'Language / Idioma' }).filter({visible:true}).selectOption(locale);
+   await page.waitForFunction(lang => document.documentElement.lang === lang, locale);
+   await page.waitForTimeout(150);
+   assert.equal(await page.evaluate(() => performance.getEntriesByType('navigation').length), navigation);
+   assert.deepEqual(requests.slice(before).filter(r => /\/api\/|anthropic|elevenlabs|translate/i.test(r.url)), [], 'language switch issued an API request');
+ };
+ const saved = () => page.evaluate(() => localStorage.getItem('homepath:case'));
+ await page.goto(base + '/intake');
+ await page.getByLabel("What's your ZIP code?").fill('30310');
+ await change('es');
+ assert.equal(await page.getByLabel('¿Cuál es tu código postal?').inputValue(), '30310');
+ await change('en');
+ assert.equal(await page.getByLabel("What's your ZIP code?").inputValue(), '30310');
+ await change('es');
+ await page.getByRole('button', {name:'Continuar', exact:true}).click();
+ await page.getByLabel('¿Cuánto pagas de alquiler mensual?').fill('1250');
+ await change('en');
+ assert.equal(await page.getByLabel('How much is your monthly rent?').inputValue(), '1250');
+ await change('es');
+ await page.getByRole('button', {name:'Demostración: cargar el caso de Maria'}).click();
+ await page.getByRole('button', {name:'Crear mi plan', exact:true}).click();
+ await page.waitForURL('**/dashboard');
+ await page.getByRole('heading', {name:'Tu plan de acción', exact:true}).waitFor();
+ assert.equal(await page.locator('html').getAttribute('lang'), 'es');
+ // Action checkboxes precede optional voice-consent inputs and use role=checkbox buttons.
+ const mark = page.locator('button[role="checkbox"]').first();
+ await mark.click();
+ const completed = await saved();
+ assert.ok(JSON.parse(completed).completedActionIds.length > 0);
+ const resourcesBefore = await page.locator('article h3').allTextContents();
+ await change('en');
+ assert.equal(await saved(), completed);
+ await change('es');
+ assert.equal(await saved(), completed);
+ assert.deepEqual(await page.locator('article h3').allTextContents(), resourcesBefore);
+ await page.reload();
+ await page.getByRole('heading', {name:'Tu plan de acción', exact:true}).waitFor();
+ assert.equal(await page.locator('html').getAttribute('lang'), 'es');
+ assert.equal(await saved(), completed);
+ const response = await context.request.get(base + '/rights');
+ assert.match(await response.text(), /<html lang="es"/);
+ // A real user update transitions recovery; language changes must not repeat it.
+ await page.getByLabel('¿Qué pasó?').selectOption('STAYING_NOT_REALISTIC');
+ await page.getByLabel('Nota (opcional)').fill('Keep this note in English.');
+ await page.getByRole('button', {name:'Actualizar y recalcular mi plan'}).click();
+ await page.getByRole('heading', {name:'Tu plan de recuperación', exact:true}).waitFor();
+ const recovery = await saved();
+ assert.equal(JSON.parse(recovery).caseStatus,'TRANSITION_RECOVERY');
+ await change('en'); await change('es');
+ assert.equal(await saved(), recovery);
+ assert.match(await page.locator('main').innerText(), /Keep this note in English\./);
+ await page.screenshot({path:'/private/tmp/homepath-spanish-recovery.png',fullPage:true});
+ // Restore Maria through existing demo UI, then check editable drafts and document facts.
+ await page.getByRole('button', {name:'Demostración',exact:true}).click();
+ await page.getByRole('button', {name:'Reiniciar a Maria',exact:true}).click();
+ await page.getByRole('tab', {name:'Plan de pagos',exact:true}).click();
+ await page.getByRole('button', {name:'Usar plantilla gratuita'}).click();
+ const message = await page.getByLabel('Borrador de mensaje (editable)').inputValue();
+ assert.match(message,/Quisiera proponer/);
+ await change('en');
+ assert.equal(await page.getByLabel('Drafted message (editable)').inputValue(),message);
+ await change('es');
+ await page.getByRole('button', {name:'Documento de demostración: usar un ejemplo de citación de desalojo'}).click();
+ await page.getByRole('button', {name:'Confirmar y actualizar mi caso'}).waitFor();
+ assert.equal(await page.getByLabel('Inquilino', {exact:true}).inputValue(),'Maria Alvarez');
+ await change('en');
+ assert.equal(await page.getByLabel('Tenant',{exact:true}).inputValue(),'Maria Alvarez');
+ await change('es');
+ await page.getByRole('button', {name:'Descartar',exact:true}).click();
+ for (const route of ['/resources','/rights','/housing','/employment','/payment-plan','/account']) {
+   await page.goto(base + route);
+   await page.waitForFunction(() => document.documentElement.lang === 'es');
+   assert.ok((await page.locator('main').innerText()).length > 50,route);
+   if(route === '/resources') { const names = await page.locator('article h3').allTextContents(); await change('en');await change('es');assert.deepEqual(await page.locator('article h3').allTextContents(), names); }
+   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),route+' desktop overflow');
+ }
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/intake');
+ await page.getByRole('button',{name:'Abrir menú',exact:true}).click();
+ await change('en');
+ assert.equal(await page.getByRole('button',{name:'Close menu',exact:true}).count(),1);
+ await change('es');
+ await page.getByRole('button',{name:'Cerrar menú',exact:true}).click();
+ await page.getByLabel('¿Cuál es tu código postal?').fill('30310');
+ await page.screenshot({path:'/private/tmp/homepath-spanish-mobile.png',fullPage:true});
+ assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),'mobile overflow');
+ await page.reload();
+ await page.getByRole('heading',{name:'¿Dónde vives?',exact:true}).waitFor();
+ assert.equal(await page.locator('html').getAttribute('lang'),'es');
+ // Complete all eight questionnaire steps in Spanish without using the demo loader.
+ const next = () => page.getByRole('button', {name:'Continuar',exact:true}).click();
+ const choose = (question, answer) => page.getByRole('group',{name:question,exact:true}).getByRole('radio',{name:answer,exact:true}).click();
+ await page.getByLabel('¿Cuál es tu código postal?').fill('30310'); await next();
+ await page.getByLabel('¿Cuánto pagas de alquiler mensual?').fill('1250');
+ await page.getByLabel('Aproximadamente, ¿cuánto debes ahora?').fill('1400'); await next();
+ await page.getByLabel('¿Cuánto podrías destinar al alquiler hoy?').fill('500');
+ await page.getByLabel('Aproximadamente, ¿cuánto ingresa tu hogar cada mes?').fill('1800'); await next();
+ await page.getByLabel('¿Cuántas personas viven en tu hogar, incluyéndote?').fill('3');
+ await choose('¿Hay menores de 18 años en tu hogar?','Sí'); await next();
+ await choose('¿Qué opción describe mejor tu trabajo actual?','Trabajo a tiempo parcial');
+ await choose('¿Tus ingresos bajaron recientemente?','Sí'); await next();
+ await choose('¿Hablaste con tu arrendador o administrador sobre el alquiler que debes?','No');
+ await choose('¿Podrías pagar un poco más cada mes, además del alquiler, para ponerte al día?','Sí'); await next();
+ await choose('¿Has solicitado asistencia para el alquiler?','No'); await next();
+ await choose('¿Qué opción se acerca más a tu situación?','Recibí una notificación judicial Se presentó un caso de desalojo (dispossessory), pero todavía no hay fecha de audiencia');
+ await page.getByRole('button',{name:'Crear mi plan',exact:true}).click();
+ await page.waitForURL('**/dashboard');
+ await page.getByRole('heading',{name:'Tu plan de acción',exact:true}).waitFor();
+ assert.equal(JSON.parse(await saved()).amountOwed,1400);
+ assert.equal(JSON.parse(await saved()).county,'Fulton');
+ const afterIntake = await saved();
+ // Narrow mobile page and another open tab must preserve the same case.
+ await page.setViewportSize({width:320,height:780});
+ assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),'320px overflow');
+ const second = await context.newPage(); await second.goto(base+'/dashboard');
+ await second.getByRole('heading',{name:'Tu plan de acción',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Abrir menú',exact:true}).click(); await change('en');
+ await second.waitForFunction(() => document.documentElement.lang === 'en');
+ assert.equal(await saved(),afterIntake);
+ await change('es');
+ await second.waitForFunction(() => document.documentElement.lang === 'es');
+ assert.equal(await saved(),afterIntake);
+ await second.close();
+ assert.deepEqual(requests.filter(r => /\/api\/(draft-message|speech)|anthropic|elevenlabs|translate\.google|deepl/i.test(r.url)),[]);
+ assert.deepEqual(failures,[]);
+ console.log(JSON.stringify({result:'PASS',checks:['desktop switching both directions','intake state and full eight-step Spanish intake','persistence and SSR lang','Maria completion','unchanged case JSON and finances','resource ordering','recovery state','untouched notes and extracted facts','offline Spanish message','mobile selector and cross-tab language sync','no paid requests','no console errors'], requests:requests.filter(r=>r.url.includes('/api/'))},null,2));
+} finally { await browser.close(); }

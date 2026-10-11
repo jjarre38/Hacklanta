@@ -9,6 +9,7 @@ import { AIRefusedError } from "./errors";
 // landlord. All numbers come from the app; Claude only writes prose.
 
 export const draftRequestSchema = z.object({
+  language: z.enum(["en", "es"]).default("en"),
   totalOwed: z.number().min(0).max(1_000_000),
   installments: z
     .array(z.object({ amount: z.number().min(0).max(1_000_000), dueDate: z.string().refine(isISODate), label: z.string().max(60) }))
@@ -52,12 +53,13 @@ export async function draftLandlordMessage(req: DraftRequest): Promise<DraftOutp
   const client = getAnthropic();
 
   const facts = {
+    output_language: req.language === "es" ? "Spanish" : "English",
     tone: req.tone === "warm" ? "warm and appreciative, still professional" : "professional and respectful",
     tenant_name: req.tenantName || null,
     landlord_name: req.landlordName || null,
     total_owed: req.totalOwed.toFixed(2),
     remaining_unallocated: Math.max(0, req.totalOwed - req.installments.reduce((s, i) => s + i.amount, 0)).toFixed(2),
-    schedule: req.installments.map((i) => ({ label: i.label, amount: i.amount.toFixed(2), date: formatDate(i.dueDate, { weekday: "long", month: "long", day: "numeric" }) })),
+    schedule: req.installments.map((i) => ({ label: i.label, amount: i.amount.toFixed(2), date: formatDate(i.dueDate, { weekday: "long", month: "long", day: "numeric", year: "numeric" }, req.language) })),
     context: {
       income_recently_reduced: req.context.incomeRecentlyReduced ?? null,
       applied_for_rental_assistance: req.context.assistanceApplied ?? null,
@@ -71,7 +73,7 @@ export async function draftLandlordMessage(req: DraftRequest): Promise<DraftOutp
     max_tokens: 2000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\nWrite the subject and message directly in ${req.language === "es" ? "Spanish" : "English"}. Use placeholders in that language. Never translate names or change facts.`,
     output_config: { effort: "low", format: betaZodOutputFormat(draftOutputSchema) },
     messages: [{ role: "user", content: `Draft the message from these facts (JSON):\n${JSON.stringify(facts, null, 2)}` }],
   });

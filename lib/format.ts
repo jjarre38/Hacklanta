@@ -1,10 +1,11 @@
+import { type Locale, localeTag } from "./i18n/core";
 // Small display helpers shared across the app.
 
-const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+const currencies = { en: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }), es: new Intl.NumberFormat("es-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }) };
 
-export function formatMoney(n: number | undefined | null): string {
+export function formatMoney(n: number | undefined | null, locale: Locale = "en"): string {
   if (n === undefined || n === null || Number.isNaN(n)) return "—";
-  return currency.format(n);
+  return currencies[locale].format(n);
 }
 
 /** Civil dates use Metro Atlanta time, independently of the server timezone. */
@@ -19,11 +20,11 @@ export function parseDate(value: string): Date {
   return new Date(value);
 }
 
-export function formatDate(value: string | undefined | null, opts?: Intl.DateTimeFormatOptions): string {
+export function formatDate(value: string | undefined | null, opts?: Intl.DateTimeFormatOptions, locale: Locale = "en"): string {
   if (!value) return "—";
   const d = parseDate(value);
-  if (!Number.isFinite(d.getTime())) return "Unknown date";
-  return d.toLocaleDateString("en-US", { ...(opts ?? { month: "short", day: "numeric", year: "numeric" }), timeZone: "America/New_York" });
+  if (!Number.isFinite(d.getTime())) return locale === "es" ? "Fecha desconocida" : "Unknown date";
+  return d.toLocaleDateString(localeTag(locale), { ...(opts ?? { month: "short", day: "numeric", year: "numeric" }), timeZone: "America/New_York" });
 }
 
 export function toISODate(d: Date): string {
