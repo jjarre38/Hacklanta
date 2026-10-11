@@ -7,41 +7,41 @@ export function formatMoney(n: number | undefined | null): string {
   return currency.format(n);
 }
 
-/** Parse YYYY-MM-DD (or full ISO) as a local date without timezone drift. */
+/** Civil dates use Metro Atlanta time, independently of the server timezone. */
+export function isISODate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(`${value}T12:00:00Z`);
+  return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
+
 export function parseDate(value: string): Date {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return isISODate(value) ? new Date(`${value}T12:00:00Z`) : new Date(NaN);
   return new Date(value);
 }
 
 export function formatDate(value: string | undefined | null, opts?: Intl.DateTimeFormatOptions): string {
   if (!value) return "—";
   const d = parseDate(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("en-US", opts ?? { month: "short", day: "numeric", year: "numeric" });
+  if (!Number.isFinite(d.getTime())) return "Unknown date";
+  return d.toLocaleDateString("en-US", { ...(opts ?? { month: "short", day: "numeric", year: "numeric" }), timeZone: "America/New_York" });
 }
 
 export function toISODate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
+  const part = (type: string) => parts.find(p => p.type === type)!.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 export function addDays(d: Date, days: number): Date {
-  const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  copy.setDate(copy.getDate() + days);
+  const copy = parseDate(toISODate(d));
+  copy.setUTCDate(copy.getUTCDate() + days);
   return copy;
 }
 
-/** Whole days from `now` to `date` (negative if in the past). */
+/** Calendar-day difference; never a computed legal deadline. */
 export function daysUntil(date: string | undefined, now: Date = new Date()): number | null {
-  if (!date) return null;
-  const target = parseDate(date);
-  if (Number.isNaN(target.getTime())) return null;
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const t = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-  return Math.round((t.getTime() - today.getTime()) / 86_400_000);
+  if (!date || !isISODate(date)) return null;
+  return Math.round((parseDate(date).getTime() - parseDate(toISODate(now)).getTime()) / 86_400_000);
 }
 
 export function makeId(prefix = "id"): string {

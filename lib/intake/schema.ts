@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isISODate } from "@/lib/format";
 import { SUPPORTED_COUNTY_NAMES } from "@/lib/data/serviceArea";
 
 // Shared intake validation (client form + /api/case). No transforms, so the
@@ -8,7 +9,7 @@ const money = (label: string) =>
   z.number({ error: `Enter ${label} (use 0 if none)` }).min(0, "Can't be negative").max(1_000_000, "That looks too large");
 
 const optionalMoney = z.number().min(0, "Can't be negative").max(1_000_000).optional();
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date");
+const isoDate = z.string().refine(isISODate, "Choose a valid date");
 
 export const EVICTION_STAGES = [
   "BEHIND_ON_RENT",
@@ -53,7 +54,7 @@ export const intakeSchema = z
     canAffordPaymentPlan: z.boolean({ error: "Choose yes or no" }),
     // Assistance
     appliedForAssistance: z.boolean({ error: "Choose yes or no" }),
-    assistanceStatus: z.enum(["APPROVED", "DENIED", "WAITLISTED", "NOT_ATTEMPTED"]).optional(),
+    assistanceStatus: z.enum(["APPROVED", "DENIED", "WAITLISTED", "NOT_ATTEMPTED", "PENDING"]).optional(),
     // Eviction stage
     evictionStage: z.enum(EVICTION_STAGES, { error: "Choose the option closest to your situation" }),
     courtDate: isoDate.optional(),

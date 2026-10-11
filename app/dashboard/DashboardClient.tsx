@@ -93,7 +93,7 @@ export function DashboardClient() {
   const currentTab = tabs.some((t) => t.id === activeTab) ? activeTab : "actions";
 
   return (
-    <div className="mx-auto w-full max-w-screen-2xl px-4 py-10 sm:px-8 sm:py-12 lg:px-12">
+    <div className="container-wide py-10 sm:py-12">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your HomePath plan</h1>

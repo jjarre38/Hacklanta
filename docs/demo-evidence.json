@@ -1,0 +1,705 @@
+{
+  "label": "FICTIONAL MARIA DEMO — computed offline, no impact claims or outcome prediction",
+  "asOf": "2026-10-10T16:00:00.000Z",
+  "input": {
+    "county": "Fulton",
+    "zipCode": "30310",
+    "monthlyRent": 1250,
+    "amountOwed": 1400,
+    "availableToday": 500,
+    "nextPaycheckAmount": 450,
+    "nextPaycheckDate": "2026-10-13",
+    "householdSize": 3,
+    "hasChildren": true,
+    "incomeRecentlyReduced": true,
+    "evictionStage": "COURT_DATE_SCHEDULED",
+    "courtDate": "2026-10-17"
+  },
+  "initial": {
+    "classification": {
+      "status": "LEGAL_HELP_RECOMMENDED",
+      "reasons": [
+        "Your court date is in 7 days."
+      ],
+      "assumptions": [],
+      "legalUrgency": "IMMEDIATE",
+      "preservation": {
+        "recoveryPriority": false,
+        "simulated": false,
+        "reasons": [
+          "Preservation options still need review. One denial, a declined arrangement, or a judgment does not establish that all options are exhausted."
+        ],
+        "paths": [
+          {
+            "id": "PAYMENT_ARRANGEMENT",
+            "state": "UNCERTAIN",
+            "reason": "Acceptance and ability to keep an arrangement must both be checked."
+          },
+          {
+            "id": "ASSISTANCE",
+            "state": "UNCERTAIN",
+            "reason": "Each program decides separately. An approval still needs an amount and payment timing."
+          },
+          {
+            "id": "OWN_FUNDS",
+            "state": "UNAVAILABLE",
+            "reason": "Reported, timely allocated housing funds cannot cover the reported debt; new funds may change this."
+          },
+          {
+            "id": "LEGAL_REVIEW",
+            "state": "UNCERTAIN",
+            "reason": "A qualified legal professional must assess defenses, deadlines, and remedies. HomePath cannot determine the outcome."
+          }
+        ]
+      }
+    },
+    "financial": {
+      "mode": "STAY",
+      "amountOwed": 1400,
+      "availableToday": 500,
+      "nextPaycheckContribution": 0,
+      "gapBeforeAssistance": 900,
+      "sources": [],
+      "totalEstimatedAssistance": 0,
+      "remainingGap": 900,
+      "assumptions": [
+        "Amounts are user-reported. Matches are opportunities, not awards; verify amounts and payment timing with providers.",
+        "No explicit housing allocation from the next paycheck; none is counted."
+      ],
+      "confirmedHousingFunds": 500,
+      "confirmedAssistance": 0,
+      "confirmedRemainingGap": 900,
+      "potentialSupport": [
+        {
+          "resourceId": "svdp-georgia",
+          "name": "St. Vincent de Paul Georgia — Local Assistance",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Your deadline is close — rental assistance is a top priority"
+          ]
+        },
+        {
+          "resourceId": "united-way-211",
+          "name": "United Way of Greater Atlanta — 2-1-1 Referrals",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Can help after a drop in income"
+          ]
+        }
+      ],
+      "obligationIsEstimate": false,
+      "outstandingRentDebt": 1400
+    },
+    "actions": [
+      {
+        "id": "contact-legal-aid",
+        "title": "Call free legal aid",
+        "urgency": "TODAY",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). A lawyer can check for defenses, errors in the filing, and options like a consent agreement."
+      },
+      {
+        "id": "apply-assistance",
+        "title": "Apply for emergency rental assistance",
+        "urgency": "TODAY",
+        "reason": "You haven't applied for assistance yet. After your reported, allocated housing funds, you're about $900 short."
+      },
+      {
+        "id": "contact-landlord",
+        "title": "Contact your landlord in writing",
+        "urgency": "TODAY",
+        "reason": "You haven't contacted your landlord yet. Many landlords prefer a plan over the cost and time of eviction."
+      },
+      {
+        "id": "prepare-hearing",
+        "title": "Gather documents for your hearing",
+        "urgency": "BEFORE_COURT",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). Judges decide based on what's in front of them, so bring proof."
+      },
+      {
+        "id": "attend-hearing",
+        "title": "Go to your hearing — arrive early",
+        "urgency": "BEFORE_COURT",
+        "reason": "Missing the hearing risks an adverse judgment; confirm attendance instructions with the court."
+      },
+      {
+        "id": "call-211",
+        "title": "Call 2-1-1 for programs open right now",
+        "urgency": "THIS_WEEK",
+        "reason": "Program funding changes; a referral is a starting point, not confirmation of funding."
+      },
+      {
+        "id": "benefits-check",
+        "title": "Check benefits that free up money for rent",
+        "urgency": "ONGOING",
+        "reason": "Your income recently dropped, which may make you newly eligible for benefits."
+      },
+      {
+        "id": "family-supports",
+        "title": "Apply for family supports",
+        "urgency": "ONGOING",
+        "reason": "You have children in your household; age, income, and other program rules still need to be checked."
+      },
+      {
+        "id": "keep-records",
+        "title": "Keep copies of everything",
+        "urgency": "ONGOING",
+        "reason": "Written records protect you in court and make assistance applications faster."
+      }
+    ],
+    "resources": [
+      {
+        "id": "atlanta-legal-aid",
+        "score": 85,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "avlf-safe-stable-homes",
+        "score": 85,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "svdp-georgia",
+        "score": 75,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "atlanta-community-food-bank",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "united-way-211",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-gateway",
+        "score": 63,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "gateway-center",
+        "score": 59,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "liheap-community-action",
+        "score": 55,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "ga-caps",
+        "score": 53,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "goodwill-north-georgia",
+        "score": 51,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "partners-for-home-rrh",
+        "score": 48.6,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "furniture-bank-atlanta",
+        "score": 45,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-housing-search",
+        "score": 45,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      }
+    ]
+  },
+  "paymentProposal": {
+    "totalOwed": 1400,
+    "availableToday": 500,
+    "installments": [
+      {
+        "amount": 500,
+        "dueDate": "2026-10-10",
+        "label": "Proposed payment today"
+      },
+      {
+        "amount": 450,
+        "dueDate": "2026-10-13",
+        "label": "Proposed installment 1"
+      },
+      {
+        "amount": 450,
+        "dueDate": "2026-10-27",
+        "label": "Proposed installment 2"
+      }
+    ],
+    "unallocatedBalance": 0,
+    "feasible": true,
+    "affordability": "ILLUSTRATIVE",
+    "assumptions": [
+      "Proposal only: ongoing rent and essential living costs still need to be paid. Landlord agreement does not change court deadlines automatically.",
+      "Illustrative 14-day pay interval; confirm your actual pay schedule.",
+      "No affordable contribution was supplied. Paycheck amounts are illustrative ceilings, not proof of affordability."
+    ]
+  },
+  "rejected": {
+    "classification": {
+      "status": "LEGAL_HELP_RECOMMENDED",
+      "reasons": [
+        "Your court date is in 7 days."
+      ],
+      "assumptions": [],
+      "legalUrgency": "IMMEDIATE",
+      "preservation": {
+        "recoveryPriority": false,
+        "simulated": false,
+        "reasons": [
+          "Preservation options still need review. One denial, a declined arrangement, or a judgment does not establish that all options are exhausted."
+        ],
+        "paths": [
+          {
+            "id": "PAYMENT_ARRANGEMENT",
+            "state": "DECLINED",
+            "reason": "This arrangement was declined; other negotiations are not ruled out."
+          },
+          {
+            "id": "ASSISTANCE",
+            "state": "UNCERTAIN",
+            "reason": "Each program decides separately. An approval still needs an amount and payment timing."
+          },
+          {
+            "id": "OWN_FUNDS",
+            "state": "UNAVAILABLE",
+            "reason": "Reported, timely allocated housing funds cannot cover the reported debt; new funds may change this."
+          },
+          {
+            "id": "LEGAL_REVIEW",
+            "state": "UNCERTAIN",
+            "reason": "A qualified legal professional must assess defenses, deadlines, and remedies. HomePath cannot determine the outcome."
+          }
+        ]
+      }
+    },
+    "financial": {
+      "mode": "STAY",
+      "amountOwed": 1400,
+      "availableToday": 500,
+      "nextPaycheckContribution": 0,
+      "gapBeforeAssistance": 900,
+      "sources": [],
+      "totalEstimatedAssistance": 0,
+      "remainingGap": 900,
+      "assumptions": [
+        "Amounts are user-reported. Matches are opportunities, not awards; verify amounts and payment timing with providers.",
+        "No explicit housing allocation from the next paycheck; none is counted."
+      ],
+      "confirmedHousingFunds": 500,
+      "confirmedAssistance": 0,
+      "confirmedRemainingGap": 900,
+      "potentialSupport": [
+        {
+          "resourceId": "svdp-georgia",
+          "name": "St. Vincent de Paul Georgia — Local Assistance",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Your deadline is close — rental assistance is a top priority"
+          ]
+        },
+        {
+          "resourceId": "united-way-211",
+          "name": "United Way of Greater Atlanta — 2-1-1 Referrals",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Can help after a drop in income"
+          ]
+        }
+      ],
+      "obligationIsEstimate": false,
+      "outstandingRentDebt": 1400
+    },
+    "actions": [
+      {
+        "id": "contact-legal-aid",
+        "title": "Call free legal aid",
+        "urgency": "TODAY",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). A lawyer can check for defenses, errors in the filing, and options like a consent agreement."
+      },
+      {
+        "id": "apply-assistance",
+        "title": "Apply for emergency rental assistance",
+        "urgency": "TODAY",
+        "reason": "You haven't applied for assistance yet. After your reported, allocated housing funds, you're about $900 short."
+      },
+      {
+        "id": "landlord-alternative",
+        "title": "Offer your landlord a different option",
+        "urgency": "TODAY",
+        "reason": "Your landlord rejected a payment plan. Some landlords accept assistance funds even after declining a plan."
+      },
+      {
+        "id": "prepare-hearing",
+        "title": "Gather documents for your hearing",
+        "urgency": "BEFORE_COURT",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). Judges decide based on what's in front of them, so bring proof."
+      },
+      {
+        "id": "attend-hearing",
+        "title": "Go to your hearing — arrive early",
+        "urgency": "BEFORE_COURT",
+        "reason": "Missing the hearing risks an adverse judgment; confirm attendance instructions with the court."
+      },
+      {
+        "id": "call-211",
+        "title": "Call 2-1-1 for programs open right now",
+        "urgency": "THIS_WEEK",
+        "reason": "Program funding changes; a referral is a starting point, not confirmation of funding."
+      },
+      {
+        "id": "benefits-check",
+        "title": "Check benefits that free up money for rent",
+        "urgency": "ONGOING",
+        "reason": "Your income recently dropped, which may make you newly eligible for benefits."
+      },
+      {
+        "id": "family-supports",
+        "title": "Apply for family supports",
+        "urgency": "ONGOING",
+        "reason": "You have children in your household; age, income, and other program rules still need to be checked."
+      },
+      {
+        "id": "keep-records",
+        "title": "Keep copies of everything",
+        "urgency": "ONGOING",
+        "reason": "Written records protect you in court and make assistance applications faster."
+      }
+    ],
+    "resources": [
+      {
+        "id": "atlanta-legal-aid",
+        "score": 85,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "avlf-safe-stable-homes",
+        "score": 85,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "svdp-georgia",
+        "score": 75,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "atlanta-community-food-bank",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "united-way-211",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-gateway",
+        "score": 63,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "gateway-center",
+        "score": 59,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "liheap-community-action",
+        "score": 55,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "ga-caps",
+        "score": 53,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "goodwill-north-georgia",
+        "score": 51,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "partners-for-home-rrh",
+        "score": 48.6,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "furniture-bank-atlanta",
+        "score": 45,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-housing-search",
+        "score": 45,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      }
+    ]
+  },
+  "recovery": {
+    "classification": {
+      "status": "TRANSITION_RECOVERY",
+      "reasons": [
+        "SIMULATION: the payment arrangement was declined, modeled immediate assistance is unavailable, and reported, timely allocated housing funds do not cover the debt. Prioritize backup housing; legal options remain unassessed."
+      ],
+      "assumptions": [],
+      "legalUrgency": "IMMEDIATE",
+      "preservation": {
+        "recoveryPriority": true,
+        "simulated": true,
+        "reasons": [
+          "SIMULATION: the payment arrangement was declined, modeled immediate assistance is unavailable, and reported, timely allocated housing funds do not cover the debt. Prioritize backup housing; legal options remain unassessed."
+        ],
+        "paths": [
+          {
+            "id": "PAYMENT_ARRANGEMENT",
+            "state": "DECLINED",
+            "reason": "This arrangement was declined; other negotiations are not ruled out."
+          },
+          {
+            "id": "ASSISTANCE",
+            "state": "UNAVAILABLE",
+            "reason": "Simulated unavailability of modeled immediate rent assistance; not a statement about real providers."
+          },
+          {
+            "id": "OWN_FUNDS",
+            "state": "UNAVAILABLE",
+            "reason": "Reported, timely allocated housing funds cannot cover the reported debt; new funds may change this."
+          },
+          {
+            "id": "LEGAL_REVIEW",
+            "state": "UNCERTAIN",
+            "reason": "A qualified legal professional must assess defenses, deadlines, and remedies. HomePath cannot determine the outcome."
+          }
+        ]
+      }
+    },
+    "financial": {
+      "mode": "MOVE",
+      "amountOwed": 2900,
+      "availableToday": 500,
+      "nextPaycheckContribution": 0,
+      "gapBeforeAssistance": 2400,
+      "sources": [],
+      "totalEstimatedAssistance": 0,
+      "remainingGap": 2400,
+      "assumptions": [
+        "Amounts are user-reported. Matches are opportunities, not awards; verify amounts and payment timing with providers.",
+        "Illustrative move budget: deposit and first month at your current rent plus $400 moving costs. Existing rent debt is separate and is not erased.",
+        "No explicit housing allocation from the next paycheck; none is counted.",
+        "SIMULATION: modeled immediate rent-assistance opportunities are unavailable; provider listings have not changed."
+      ],
+      "confirmedHousingFunds": 500,
+      "confirmedAssistance": 0,
+      "confirmedRemainingGap": 2400,
+      "potentialSupport": [
+        {
+          "resourceId": "partners-for-home-rrh",
+          "name": "Partners for HOME — Atlanta Coordinated Entry",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Affordable housing supports your next step"
+          ]
+        },
+        {
+          "resourceId": "furniture-bank-atlanta",
+          "name": "Furniture Bank of Metro Atlanta",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County"
+          ]
+        },
+        {
+          "resourceId": "united-way-211",
+          "name": "United Way of Greater Atlanta — 2-1-1 Referrals",
+          "amount": null,
+          "status": "UNKNOWN",
+          "eligibility": "POTENTIALLY_RELEVANT",
+          "reasons": [
+            "Provider must confirm eligibility and capacity; a match is not approval.",
+            "Current application or funding availability is unknown.",
+            "Serves Fulton County",
+            "Can help after a drop in income"
+          ]
+        }
+      ],
+      "obligationIsEstimate": true,
+      "outstandingRentDebt": 1400
+    },
+    "actions": [
+      {
+        "id": "contact-legal-aid",
+        "title": "Call free legal aid",
+        "urgency": "TODAY",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). A lawyer can check for defenses, errors in the filing, and options like a consent agreement."
+      },
+      {
+        "id": "move-out-agreement",
+        "title": "Ask legal aid about a move-out agreement",
+        "urgency": "TODAY",
+        "reason": "Your case is in court. How it ends can affect your ability to rent again."
+      },
+      {
+        "id": "prepare-hearing",
+        "title": "Gather documents for your hearing",
+        "urgency": "BEFORE_COURT",
+        "reason": "Your court date is in 7 days (Oct 17, 2026). Judges decide based on what's in front of them, so bring proof."
+      },
+      {
+        "id": "attend-hearing-recovery",
+        "title": "Still go to your court date",
+        "urgency": "BEFORE_COURT",
+        "reason": "Missing court risks an adverse judgment even while you plan a move."
+      },
+      {
+        "id": "safe-place",
+        "title": "Make sure you have a safe place to stay",
+        "urgency": "THIS_WEEK",
+        "reason": "Staying in your current home may not be possible, so it's important to know your backup options."
+      },
+      {
+        "id": "housing-search",
+        "title": "Start your affordable housing search",
+        "urgency": "THIS_WEEK",
+        "reason": "Starting early gives you more choices."
+      },
+      {
+        "id": "deposit-help",
+        "title": "Ask for deposit and move-in help",
+        "urgency": "THIS_WEEK",
+        "reason": "Move-in costs are often the biggest barrier to a new place."
+      },
+      {
+        "id": "moving-help",
+        "title": "Line up moving and furniture help",
+        "urgency": "THIS_WEEK",
+        "reason": "Planning the move early avoids losing belongings."
+      },
+      {
+        "id": "children-stability",
+        "title": "Keep your children's school and care stable",
+        "urgency": "THIS_WEEK",
+        "reason": "You have children. Ask the school liaison whether your living situation qualifies for McKinney-Vento protections and school-stability support."
+      },
+      {
+        "id": "employment-recovery",
+        "title": "Strengthen your income",
+        "urgency": "ONGOING",
+        "reason": "Your income recently dropped. Rebuilding it makes your next home more stable."
+      },
+      {
+        "id": "benefits-recovery",
+        "title": "Lock in benefits during the transition",
+        "urgency": "ONGOING",
+        "reason": "Benefits keep basics covered while your housing changes."
+      },
+      {
+        "id": "keep-records",
+        "title": "Keep copies of everything",
+        "urgency": "ONGOING",
+        "reason": "Written records protect you in court and make assistance applications faster."
+      }
+    ],
+    "resources": [
+      {
+        "id": "gateway-center",
+        "score": 81,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "atlanta-community-food-bank",
+        "score": 77,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-housing-search",
+        "score": 77,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "partners-for-home-rrh",
+        "score": 77,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "goodwill-north-georgia",
+        "score": 73,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "furniture-bank-atlanta",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "georgia-gateway",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "united-way-211",
+        "score": 69,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "ga-caps",
+        "score": 67,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "atlanta-legal-aid",
+        "score": 59,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "avlf-safe-stable-homes",
+        "score": 59,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      },
+      {
+        "id": "liheap-community-action",
+        "score": 53,
+        "eligibility": "POTENTIALLY_RELEVANT"
+      }
+    ]
+  },
+  "reset": {
+    "caseStatus": "LEGAL_HELP_RECOMMENDED",
+    "gap": 900
+  }
+}

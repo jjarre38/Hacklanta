@@ -23,12 +23,15 @@ export interface RightsCardContent {
   stages: EvictionStage[];
 }
 
-const GLA: RightsSource = { name: "Georgia Legal Aid (GeorgiaLegalAid.org)", url: "https://www.georgialegalaid.org" };
-const ALAS: RightsSource = { name: "Atlanta Legal Aid Society", url: "https://atlantalegalaid.org" };
-const COURTS: RightsSource = { name: "Judicial Council of Georgia — Georgia Courts", url: "https://georgiacourts.gov" };
-const DCA: RightsSource = { name: "Georgia Department of Community Affairs", url: "https://www.dca.ga.gov" };
+const GLA: RightsSource = { name: "Georgia Legal Aid (GeorgiaLegalAid.org)", url: "https://www.georgialegalaid.org/resource/what-to-know-about-evictions" };
+const ALAS: RightsSource = { name: "Atlanta Legal Aid Society", url: "https://atlantalegalaid.org/get-help-2/" };
+const COURTS: RightsSource = { name: "Fulton Magistrate Court — Dispossessory", url: "https://www.magistratefulton.org/165/Landlord-Tenant-Dispossessory" };
+const DCA: RightsSource = { name: "Georgia Department of Community Affairs", url: "https://dca.georgia.gov/housing-choice-voucher/landlords/georgia-landlord-tenant-handbook" };
 
-const REVIEWED = "2026-10-01";
+const CODE: RightsSource = { name: "Georgia General Assembly — Official Code, 2025 supplement", url: "https://www.legis.ga.gov/api/document/docs/default-source/joint-features-document-library/t44-ch1-7-(v31)-pdf.pdf" };
+const APPEAL: RightsSource = { name: "Fulton Magistrate Court — Petition for Review", url: "https://www.magistratefulton.org/DocumentCenter/View/2210/Petition-for-Review-Appeals" };
+// Source check date, not attorney certification; see docs/LEGAL_REVIEW.md.
+const REVIEWED = "2026-10-10";
 
 export const RIGHTS_CONTENT: RightsCardContent[] = [
   {
@@ -37,14 +40,14 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     summary:
       "For unpaid rent, your landlord must give you written notice and a chance to pay or move before filing an eviction case in court.",
     points: [
-      "Under Georgia's 2024 Safe at Home Act, a landlord generally must give written notice and at least 3 business days to pay what's owed or move out before filing for unpaid rent.",
+      "For residential leases entered into or renewed on or after July 1, 2024, Georgia law requires a three-business-day pay-or-vacate notice before a nonpayment filing. Ask legal aid about your lease and any additional notice protections.",
       "Read your lease — it may require more notice or a specific way of delivering it.",
       "A notice is not an eviction. You cannot be legally removed without a court case.",
       "Use this time: apply for assistance and offer your landlord a payment plan in writing.",
     ],
     terms: [{ term: "Demand for possession", meaning: "The landlord asking you to leave the home, which must happen before they can file in court." }],
     law: "O.C.G.A. § 44-7-50",
-    sources: [GLA, DCA],
+    sources: [CODE, DCA],
     lastReviewed: REVIEWED,
     stages: ["BEHIND_ON_RENT", "NOTICE_RECEIVED", "UNSURE"],
   },
@@ -54,10 +57,10 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     summary: "Your landlord can't force you out on their own — even if you're behind on rent.",
     points: [
       "Your landlord may not change the locks, remove your belongings, or shut off utilities to make you leave.",
-      "Only a sheriff or marshal can remove you, and only after a judge issues a writ of possession.",
+      "Removal requires court process and lawful execution of a writ; ask the court or legal aid about who may execute it and when.",
       "If you're locked out illegally, call legal aid right away. You may also contact local police.",
     ],
-    law: "O.C.G.A. § 44-7-14.1",
+    law: "O.C.G.A. §§ 44-7-14.1, 44-7-50, 44-7-55",
     sources: [GLA, ALAS],
     lastReviewed: REVIEWED,
     stages: ["BEHIND_ON_RENT", "NOTICE_RECEIVED", "EVICTION_FILED", "COURT_DATE_SCHEDULED", "JUDGMENT_ENTERED", "UNSURE"],
@@ -71,7 +74,7 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
       "You can answer in writing or in person at the magistrate court in your county. Many courts also allow online filing.",
       "In your answer, explain your side — for example, that you paid, offered to pay, the amount is wrong, or there are repair problems.",
       "If you don't answer, the landlord can win by default without a hearing.",
-      "Legal aid can help you prepare your answer for free.",
+      "If the seventh day is a weekend or legal holiday, the answer deadline generally moves to the next qualifying day. Check the summons and court instructions; seek legal help immediately.",
     ],
     terms: [
       { term: "Dispossessory affidavit", meaning: "The landlord's sworn court filing asking to remove you from the home." },
@@ -91,7 +94,7 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     points: [
       "In general, the landlord must accept this full payment — but only once in a 12-month period.",
       "Payment usually needs to cover all rent claimed, plus the landlord's filing costs (and late fees if the lease allows).",
-      "Rental assistance approvals can sometimes count — ask legal aid how to show this to your landlord and the court.",
+      "An assistance approval letter is not the same as payment. Ask legal aid about tender requirements and how to document an actual payment or refused offer.",
       "Get a receipt and keep proof of everything you pay.",
     ],
     terms: [{ term: "Tender", meaning: "Offering the full amount owed." }],
@@ -105,9 +108,9 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     title: "What happens at the hearing",
     summary: "A magistrate judge hears both sides and decides whether the landlord can take back the home and whether money is owed.",
     points: [
-      "Arrive early. If you don't show up, the landlord usually wins automatically.",
+      "Arrive early and follow the court instructions. Missing a hearing risks an adverse judgment.",
       "Bring your lease, rent receipts, notices, photos of repair problems, and messages with your landlord.",
-      "Many courts offer free mediation, where you and your landlord can agree on a payment plan or move-out date.",
+      "Ask whether your court offers mediation. Keep any proposed agreement in writing and ask legal aid to review it.",
       "If the case continues or you appeal, the judge may order you to pay rent into the court as it comes due.",
     ],
     terms: [
@@ -125,14 +128,14 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     summary:
       "If the judge rules for the landlord, the landlord can get a writ of possession — the court order that allows a sheriff or marshal to remove you.",
     points: [
-      "Generally, the writ can't be carried out until 7 days after the judgment. This is also about how long you have to appeal.",
-      "Talk to legal aid right away about appealing, negotiating more time, or a move-out agreement.",
+      "After a contested judgment, the writ generally becomes effective after seven days. Default and other procedures can differ; do not assume you have seven additional days.",
+      "Dispossessory appeals generally have a seven-day filing window. Ask legal aid immediately about the petition-for-review procedure and rent payments required to remain during an appeal.",
       "On move-out day, belongings left behind may be removed from the home, so plan where your things will go.",
       "A judgment doesn't end your options — HomePath will help you plan a safe move and your next home.",
     ],
     terms: [{ term: "Writ of possession", meaning: "A court order giving the landlord the right to have you removed from the home." }],
     law: "O.C.G.A. §§ 44-7-55, 44-7-56",
-    sources: [GLA, COURTS],
+    sources: [CODE, APPEAL, COURTS],
     lastReviewed: REVIEWED,
     stages: ["JUDGMENT_ENTERED", "COURT_DATE_SCHEDULED"],
   },
@@ -142,11 +145,11 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     summary: "Your landlord can't punish you for asking for repairs or reporting code violations.",
     points: [
       "Georgia law protects tenants who request repairs, report health or safety problems, or join a tenant organization.",
-      "Under the 2024 Safe at Home Act, homes must be fit for living when the lease begins and kept that way.",
-      "Keep written records of repair requests (texts and emails count) and photos of problems.",
+      "The Safe at Home Act added habitability duties for covered residential leases entered into or renewed from July 1, 2024. Ask legal aid how repair and retaliation rules apply to your facts.",
+      "Keep repair records. Retaliation protections have conditions and exceptions; they do not automatically excuse unpaid rent or stop a case.",
     ],
     law: "O.C.G.A. §§ 44-7-13, 44-7-24",
-    sources: [GLA, DCA],
+    sources: [CODE, DCA],
     lastReviewed: REVIEWED,
     stages: ["BEHIND_ON_RENT", "NOTICE_RECEIVED", "EVICTION_FILED", "COURT_DATE_SCHEDULED"],
   },
@@ -157,9 +160,9 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     points: [
       "Ask legal aid whether a settlement could include dismissing the case, which may look better to future landlords.",
       "You have the right to see what tenant screening companies report about you and to dispute mistakes.",
-      "Under the Safe at Home Act, security deposits generally can't be more than two months' rent.",
+      "Ask legal aid about the two-month security-deposit cap for covered residential leases entered into or renewed from July 1, 2024.",
     ],
-    sources: [GLA, ALAS],
+    sources: [CODE, GLA, ALAS],
     lastReviewed: REVIEWED,
     stages: ["JUDGMENT_ENTERED"],
   },
@@ -168,7 +171,7 @@ export const RIGHTS_CONTENT: RightsCardContent[] = [
     title: "If you need help right now",
     summary: "If you've been locked out, are about to lose housing tonight, or feel unsafe, there is help available today.",
     points: [
-      "Call 2-1-1 (United Way) any time, day or night, for emergency shelter, food, and assistance programs.",
+      "Contact United Way 2-1-1 or its online directory for current shelter and assistance referrals. Hours and placements vary; a referral does not reserve a bed.",
       "In the City of Atlanta, Gateway Center (404-215-6600) is a front door to emergency housing.",
       "If you are in danger, call 911.",
       "If your landlord locked you out or removed your things without a court order, contact legal aid immediately.",

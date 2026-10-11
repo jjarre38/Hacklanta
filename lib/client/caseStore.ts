@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { UserCase } from "@/types";
+import { userCaseSchema } from "@/lib/validation/case";
+import { reclassify } from "@/lib/services/caseService";
 import { makeId } from "@/lib/format";
 
-// Guest-mode persistence. The case lives in this browser's localStorage under
-// an anonymous session ID. When Supabase is configured, the API also stores a
-// copy keyed by the same session ID.
+// Guest cases stay in this browser until cleared. No background server sync.
 
 const CASE_KEY = "homepath:case";
 const SESSION_KEY = "homepath:session";
@@ -26,7 +26,8 @@ export function loadCase(): UserCase | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(CASE_KEY);
-    return raw ? (JSON.parse(raw) as UserCase) : null;
+    const parsed = userCaseSchema.safeParse(raw ? JSON.parse(raw) : null);
+    return parsed.success ? reclassify(parsed.data) : null;
   } catch {
     return null;
   }
@@ -35,16 +36,12 @@ export function loadCase(): UserCase | null {
 export function saveCase(c: UserCase): void {
   window.localStorage.setItem(CASE_KEY, JSON.stringify(c));
   window.dispatchEvent(new Event(CHANGE_EVENT));
-  // Best-effort server sync (no-op server-side when Supabase isn't configured).
-  void fetch("/api/case", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId: getSessionId(), case: c }),
-  }).catch(() => undefined);
+
 }
 
 export function clearCase(): void {
   window.localStorage.removeItem(CASE_KEY);
+  window.localStorage.removeItem(SESSION_KEY);
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
