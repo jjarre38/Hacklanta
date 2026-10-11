@@ -25,10 +25,12 @@ export interface AccountState {
   email: string | null;
   sync: SyncStatus;
   syncError: string | null;
+  /** True once the signed-in account's saved plan (or lack of one) has been loaded into the browser. */
+  caseReady: boolean;
 }
 
 const TABLE = "account_cases";
-const INITIAL: AccountState = { status: "loading", email: null, sync: "idle", syncError: null };
+const INITIAL: AccountState = { status: "loading", email: null, sync: "idle", syncError: null, caseReady: false };
 
 let state: AccountState = INITIAL;
 let user: User | null = null;
@@ -80,13 +82,13 @@ async function handleSession(session: Session | null) {
   if (!next) {
     const wasSignedIn = user !== null;
     user = null;
-    setState({ status: "signed-out", email: null, sync: "idle", syncError: null });
+    setState({ status: "signed-out", email: null, sync: "idle", syncError: null, caseReady: false });
     if (wasSignedIn) withoutPush(clearCase);
     return;
   }
 
   user = next;
-  setState({ status: "signed-in", email: next.email ?? null, sync: "syncing", syncError: null });
+  setState({ status: "signed-in", email: next.email ?? null, sync: "syncing", syncError: null, caseReady: false });
   await pullCase(next);
 }
 
@@ -100,7 +102,7 @@ async function pullCase(forUser: User) {
     const parsed = userCaseSchema.safeParse(data.data);
     if (!parsed.success) return syncFailed("Your saved plan couldn't be read. Start a new plan to replace it.");
     withoutPush(() => saveCase(reclassify(parsed.data)));
-    setState({ sync: "saved" });
+    setState({ sync: "saved", caseReady: true });
     return;
   }
 
@@ -108,6 +110,7 @@ async function pullCase(forUser: User) {
   const local = loadCase();
   if (local) enqueue(() => pushCase(forUser, local));
   else setState({ sync: "idle" });
+  setState({ caseReady: true });
 }
 
 function onLocalChange() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { AlertCircle, CheckCircle2, CloudOff, Eye, EyeOff, Loader2, LogOut, Sparkles, UserRound } from "lucide-react";
@@ -13,7 +13,16 @@ import { Card } from "@/components/ui/Card";
 type Mode = "sign-in" | "sign-up";
 
 export function AccountClient() {
+  const router = useRouter();
   const account = useAccount();
+  const { userCase } = useCase();
+  const [justSignedIn, setJustSignedIn] = useState(false);
+
+  // After signing in, wait until the account's saved plan has loaded, then go to it.
+  // Accounts without a plan go straight to the questionnaire.
+  useEffect(() => {
+    if (justSignedIn && account.status === "signed-in" && account.caseReady) router.push(userCase ? "/dashboard" : "/intake");
+  }, [justSignedIn, account.status, account.caseReady, userCase, router]);
 
   return (
     <div className="container-page max-w-lg py-8 sm:py-12">
@@ -23,14 +32,21 @@ export function AccountClient() {
         </div>
       )}
       {account.status === "unconfigured" && <NotConfigured />}
-      {account.status === "signed-out" && <SignInForm />}
-      {account.status === "signed-in" && <SignedIn />}
+      {account.status === "signed-out" && <SignInForm onSignedIn={() => setJustSignedIn(true)} />}
+      {account.status === "signed-in" && (justSignedIn ? <Redirecting /> : <SignedIn />)}
     </div>
   );
 }
 
-function SignInForm() {
-  const router = useRouter();
+function Redirecting() {
+  return (
+    <div className="flex items-center justify-center gap-2 py-16 text-ink-muted" aria-busy="true">
+      <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Loading your plan…
+    </div>
+  );
+}
+
+function SignInForm({ onSignedIn }: { onSignedIn: () => void }) {
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,12 +63,12 @@ function SignInForm() {
     if (mode === "sign-in") {
       const result = await signIn(email, password);
       if (result.error) setError(result.error);
-      else router.push("/dashboard");
+      else onSignedIn();
     } else {
       const result = await signUp(email, password);
       if (result.error) setError(result.error);
       else if (result.needsConfirmation) setNotice("Check your email for a link to confirm your account, then sign in.");
-      else router.push("/dashboard");
+      else onSignedIn();
     }
     setBusy(null);
   }
@@ -63,7 +79,7 @@ function SignInForm() {
     setNotice(null);
     const result = await signInDemo();
     if (result.error) setError(`Demo sign-in failed: ${result.error} (Has the demo account been created? Run npm run db:demo-account.)`);
-    else router.push("/dashboard");
+    else onSignedIn();
     setBusy(null);
   }
 
