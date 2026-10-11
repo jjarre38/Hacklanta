@@ -127,7 +127,8 @@ values ('documents', 'documents', false)
 on conflict (id) do nothing;
 
 -- ---------------------------------------------------------- row level security
--- All writes go through server routes using the service role key, which bypasses RLS.
+-- Public demo disables all guest case/document writes, including service-role writes.
+-- This optional legacy schema is not deployed by the app. No guest ownership is inferred from session_id.
 -- Enable RLS so the anon key cannot read other people's cases.
 alter table user_cases    enable row level security;
 alter table case_events   enable row level security;

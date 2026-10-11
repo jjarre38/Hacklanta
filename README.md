@@ -1,107 +1,68 @@
 # HomePath
 
-A Metro Atlanta eviction prevention and housing stability platform. HomePath helps renters facing eviction answer one question: **"What can I still do next?"**
+HomePath identifies the paths still available to keep a Metro Atlanta renter housed and helps them plan a safer transition when staying is no longer realistic.
 
-- If staying is possible, HomePath helps the renter stay.
-- If staying isn't realistic, it helps them limit the damage and find stable housing.
-- The user never hits a dead end.
+The MVP serves **Fulton, DeKalb, Cobb, Gwinnett, and Clayton**. It provides general information and planning support, not legal advice, representation, guaranteed eligibility, or predictions of court outcomes.
 
-Service area (MVP): Fulton, DeKalb, Cobb, Gwinnett, and Clayton counties, Georgia.
-
-> HomePath provides general legal information, not legal advice. The resource listings, availability statuses, assistance amounts, and impact numbers are **demo data**.
-
-## Quick start
+## Run locally
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then fill in values (see below)
-npm run dev                        # http://localhost:3000
+npm run dev
 ```
 
-Other scripts:
+Open http://localhost:3000. The Maria flow and resource catalog require **no credentials**. `.env.local.example` contains optional placeholders; copy it to `.env.local` only if you need configuration and have not already created a local file. Never overwrite existing secrets or commit `.env.local`.
 
-| Script | What it does |
+| Command | Purpose |
 |---|---|
+| `npm test` | Node test runner + existing tsx, no new test dependency |
+| `npm run typecheck` | TypeScript validation |
+| `npm run lint` | Next.js ESLint |
 | `npm run build` / `npm start` | Production build / server |
-| `npm run lint` / `npm run typecheck` | ESLint / TypeScript checks |
-| `npm run db:seed-sql` | Regenerates `supabase/seed.sql` from `lib/data/resources.ts` |
+| `npm run demo:evidence` | Execute Maria's offline service journey and print explanations |
+| `npm run demo:evidence -- 2026-10-10T16:00:00Z` | Fixed-date evidence replay |
+| `npm run db:seed-sql` | Generate optional SQL locally; does not contact a database |
 
-## Environment variables
+## Demo truthfulness and UI integration
 
-| Variable | Required | Used for |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | For AI features | Drafting landlord messages and extracting data from uploaded documents. Without it, those two features show a "not configured" message. Everything else still works. |
-| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase browser key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Server-side writes (cases, documents, storage) |
+Maria starts with $1,400 owed and $500 available for housing: **$900 remains**. Her $450 paycheck is excluded until explicitly allocated. Matches never become awards through arithmetic. Her payment proposal is an editable illustration, not certified affordable.
 
-**Without Supabase**, the app runs fully in guest mode: cases are stored in `localStorage` and resources come from the bundled static dataset.
+A declined plan or denied assistance application does not establish that preservation is exhausted. The explicit simulation changes structured financial-path availability, recomputes the plan, and prioritizes recovery while retaining legal help. The MOVE budget is an illustrative $2,900, leaving $2,400 after housing cash; existing rent debt is separate.
 
-**With Supabase:**
+**The existing visual demo callbacks and financial/privacy labels need the changes in [UI_HANDOFF](docs/UI_HANDOFF.md).** Backend/API behavior is tested, but do not present the current visual transition as integrated. The teammate's visual files were intentionally untouched.
 
-1. In the SQL editor, run `supabase/schema.sql`. This creates the tables, the indexes, row-level security, and the private `documents` storage bucket.
-2. Run `supabase/seed.sql` to load the resources.
-3. Set the three Supabase env vars.
+See [DEMO_EVIDENCE](docs/DEMO_EVIDENCE.md) and [generated JSON](docs/demo-evidence.json) for the exact inputs, transitions, calculations, priorities, reset, and seeded/simulated boundaries. “Demo Document” uses seeded fields without AI; label it accordingly. Landing-page demo counters are not measured impact.
 
-The case API then upserts cases, events, and action items keyed by the guest session ID. Uploaded documents go to Storage. Resources are read from the database.
+## Deterministic architecture
 
-## Demo script (about 3 minutes)
+- `lib/engine`: independent legal urgency/preservation evaluation, conservative financial gap, sourced restriction checks, explainable ranking, housing planning.
+- `lib/services`: case updates, action generation, constrained payment schedules, reviewed resource loading. Guest case/document persistence is intentionally disabled.
+- `lib/demo`: Maria, explicit scenario functions, sample notice and seeded extraction.
+- `lib/validation`: nested server/client case validation; `lib/intake/schema.ts` validates intake.
+- `lib/ai`: optional document extraction and landlord-message drafting only. No LLM controls status, money, matching, or priority.
+- `app/api`: bounded requests, validation, computation, optional protected AI. No guest case read/store API.
+- `lib/client/caseStore.ts`: browser-local saved case, no background sync. Clearing removes both case and session keys.
 
-1. **Landing page (`/`).** Read the headline, then open "How it works", the impact metrics (labeled as demo data), and the service-area callout.
-2. **Click "Build My Action Plan."** Step through a question or two. To show the out-of-area handling, choose "Another county" and point out the friendly fallback: 2-1-1, GeorgiaLegalAid.org, and the rights page.
-3. **Click "Demo: Load Maria's Case"**, then **"Build my plan."**
-   - Maria: Fulton County, $1,250 rent, $1,400 owed, $500 available today, $450 next paycheck, 3-person household with children, reduced income, court date in 7 days.
-4. **Dashboard (`/dashboard`):**
-   - Her status is **Legal Help Recommended**. Open "Why this status?" to see the rule that fired.
-   - Walk through the action plan, which is grouped into Today, Before court, This week, and Ongoing. Every item explains *why* it's there.
-   - "Closing your rent gap": $500 today + $450 paycheck + an estimated $450 from Fulton County assistance = covered.
-   - Payment plan calculator: $500 today, then two payday installments of $450. Edit an amount and watch the remaining balance update. Click **Draft Message to Landlord** (requires `ANTHROPIC_API_KEY`).
-   - Document upload: click **Demo Document** to have Claude read a sample summons. Review the fields, then confirm to update the case.
-5. **The key moment.** In **Demo Controls**, click **"Run both → see recovery transition."** The landlord rejects the plan, assistance becomes unavailable, and the status animates from coral to violet, changing to **Transition & Recovery**. The action plan, the financial panel (now move-in costs), and the resources all switch to the recovery path.
-6. Under "What is making housing hardest?", pick **Deposit and application fees**. The plan and resources reorder.
-7. Open **Find affordable housing** (`/housing`) and **Rebuild income** (`/employment`). Finish on **Know Your Rights** (`/rights`), where cards matching Maria's stage are highlighted.
+Civil dates use America/New_York. Court-day differences prioritize tasks; they are not legal deadline calculations. Resource checks can exclude known county/ZIP/filing mismatches, but never establish complete eligibility.
 
-Use **Reset Maria** in Demo Controls to start over.
+## Optional services and privacy
 
-## Architecture
+| Variable | Behavior |
+|---|---|
+| `ANTHROPIC_API_KEY` | Optional server-side key; alone does not enable public AI |
+| `HOMEPATH_AI_ACCESS_TOKEN` | Private operator bearer token, at least 32 characters; never put in browser code |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Legacy optional setup variables; do not enable guest persistence or remote catalog loading |
 
-```
-app/                      Pages (App Router) and API routes
-  api/case                POST: intake → classify → (persist) · PUT: sync an updated case
-  api/resources           GET: resources + scored matches (county/category/stage/openOnly)
-  api/draft-message       POST: Claude drafts a landlord message from a deterministic plan
-  api/document            POST: Claude extracts fields from a PDF/image (or the demo notice)
-components/               UI, grouped by feature (intake, dashboard, resources, paymentplan, document, rights)
-lib/
-  engine/                 Pure deterministic logic. No I/O, no AI.
-    caseClassifier.ts       CaseStatus rules (documented in code)
-    resourceMatcher.ts      Resource scoring and match explanations
-    resourceCombinationEngine.ts  How funds + programs close the gap (rent, or move-in costs in recovery)
-    housingGuidance.ts      Housing search guidance
-  services/
-    recommendationService.ts  ActionItem generation, each with a `reason`
-    paymentPlanService.ts     Installment math
-    caseService.ts            Create/update/reclassify cases (pure)
-    resourceService.ts        Load resources (Supabase → static fallback)
-    casePersistence.ts / documentService.ts  Supabase writes (server-only, optional)
-  ai/                     The only Claude touchpoints
-    messageDrafter.ts       Structured output (Zod) and a no-legal-claims prompt
-    documentParser.ts       PDF/image extraction, null-not-guess, re-validated with Zod
-  data/                   Service area, resource dataset, and Georgia rights content (hardcoded, sourced)
-  client/                 localStorage case store (guest mode) and resource hook
-  demo/                   Maria seed and the sample eviction summons
-supabase/                 schema.sql, seed.sql (generated)
-```
+Protected live AI also requires explicit consent to third-party processing. Ordinary public-browser AI requests remain disabled. The offline sample and manual case entry work without AI. No live model call is needed to demonstrate the engine.
 
-**Design rules**
+Guest cases stay in localStorage until cleared, including across browser restarts. Initial intake is processed by the server without retention. No uploaded documents or extractions are stored in cloud storage. Previously stored cloud records, if any, are not automatically deleted. See [SECURITY_PRIVACY](docs/SECURITY_PRIVACY.md).
 
-- **AI is used for prose and extraction only.** Case status, action plans, money math, and resource matching are deterministic TypeScript. Claude (`claude-opus-5-5`) is called through `@anthropic-ai/sdk`. It uses schema-constrained structured output and server-side refusal fallbacks (`fallbacks: "default"`).
-- **Expanding to new areas means editing data, not code.** Add a county to `lib/data/serviceArea.ts` and list it in each relevant resource's `countiesServed`. No component hard-codes county names.
-- **Privacy.** No accounts, no SSNs, and no banking details. Guest data stays in the browser unless Supabase is configured.
-- **Language.** Resources always say "you may qualify", never "you qualify". The app never says "no options available": recovery resources are always shown.
+`supabase/schema.sql` and generated seed SQL remain optional legacy artifacts; no deployment or migration is performed. Seed upserts do not remove old rows. The public app always uses the reviewed local catalog so database drift cannot restore invented program openings.
 
-## Before real-world use
+## Evidence and limits
 
-- Verify every resource's phone number, website, eligibility, and status with the organization.
-- Have a Georgia attorney review `lib/data/rightsContent.ts`.
-- Replace the demo `typicalAmount` estimates and the impact metrics with real data.
+- [Resource verification](docs/RESOURCE_VERIFICATION.md): 16 sourced contacts/referral services; current funding and beds remain unknown.
+- [Legal review](docs/LEGAL_REVIEW.md): direct Georgia sources, corrections, failed retrievals and remaining attorney-review needs.
+- [Implementation review](docs/IMPLEMENTATION_REVIEW.md): changes, tests, tradeoffs, deferred work and release blockers.
+
+Before real-world use, complete the UI handoff, obtain Georgia legal review, and confirm priority providers' current intake. Do not infer availability from a working website or an eligibility guarantee from a match score.

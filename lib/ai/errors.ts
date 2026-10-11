@@ -20,13 +20,13 @@ export function aiErrorResponse(err: unknown, route: string): [{ error: string }
     return [{ error: "The AI service is busy. Please try again in a minute." }, { status: 429 }];
   }
   if (err instanceof Anthropic.BadRequestError) {
-    console.error(`[${route}] Anthropic bad request`, err.message);
+    console.error(`[${route}] AI request rejected`);
     return [{ error: "The AI service couldn't process this request. If you uploaded a file, try a clearer PDF or photo." }, { status: 400 }];
   }
   if (err instanceof Anthropic.APIError) {
-    console.error(`[${route}] Anthropic API error`, err.status, err.message);
+    console.error(`[${route}] AI service error`, err.status);
     return [{ error: "The AI service had a problem. Please try again." }, { status: 502 }];
   }
-  console.error(`[${route}]`, err);
+  console.error(`[${route}] AI request failed`);
   return [{ error: "Something went wrong. Please try again." }, { status: 500 }];
 }

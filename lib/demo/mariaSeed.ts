@@ -1,3 +1,6 @@
+import type { UserCase } from "@/types";
+import { makeId } from "@/lib/format";
+import { applyCaseUpdate, createCaseFromIntake, reclassify } from "@/lib/services/caseService";
 import type { IntakeValues } from "@/lib/intake/schema";
 import { addDays, toISODate } from "@/lib/format";
 
@@ -35,3 +38,21 @@ export function mariaIntake(now: Date = new Date()): IntakeValues {
 }
 
 export const MARIA_NAME = "Maria";
+
+/** Explicit, inspectable scenario controls. Never infer simulation from a note or person name. */
+export function simulateMariaAssistanceUnavailable(c: UserCase, now: Date = new Date()): UserCase {
+  const scenario: UserCase = { ...c,
+    demoScenario: { simulated: true, immediateAssistanceUnavailable: true, label: "SIMULATION: modeled immediate assistance unavailable" },
+    approvedAssistanceAmount: undefined, approvedAssistanceAvailableDate: undefined,
+    updatedAt: now.toISOString(),
+    events: [...c.events, { id: makeId("evt"), type: "DEMO_ASSISTANCE_UNAVAILABLE", description: "SIMULATION: modeled immediate rental-assistance opportunities are unavailable. Legal options remain unassessed.", date: now.toISOString(), isUserAction: false }],
+  };
+  return reclassify(scenario, now);
+}
+
+export function runMariaTransition(c: UserCase, now: Date = new Date()): UserCase {
+  return simulateMariaAssistanceUnavailable(applyCaseUpdate(c, { type: "LANDLORD_REJECTED_PLAN", note: "SIMULATION" }, now), now);
+}
+export function resetMaria(now: Date = new Date()): UserCase {
+  return createCaseFromIntake(mariaIntake(now), now);
+}

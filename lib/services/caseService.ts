@@ -1,6 +1,6 @@
 import type { CaseEvent, CaseUpdate, CaseUpdateType, ExtractedDocument, UserCase } from "@/types";
 import { classifyCase, STAGE_ORDER, STATUS_META } from "@/lib/engine/caseClassifier";
-import { formatDate, formatMoney, makeId } from "@/lib/format";
+import { formatDate, formatMoney, makeId, isISODate } from "@/lib/format";
 import { getCounty, SERVICE_STATE } from "@/lib/data/serviceArea";
 
 // Pure case lifecycle functions: create from intake, apply updates, reclassify.
@@ -25,7 +25,7 @@ export function createCaseFromIntake(data: IntakeData, now: Date = new Date(), i
   const draft: UserCase = {
     ...data,
     state: data.state ?? SERVICE_STATE,
-    assistanceStatus: data.appliedForAssistance ? data.assistanceStatus ?? "WAITLISTED" : "NOT_ATTEMPTED",
+    assistanceStatus: data.appliedForAssistance ? data.assistanceStatus ?? "PENDING" : "NOT_ATTEMPTED",
     id,
     createdAt: iso,
     updatedAt: iso,
@@ -38,17 +38,18 @@ export function createCaseFromIntake(data: IntakeData, now: Date = new Date(), i
 
 /** Recompute caseStatus and log a status-change event if it changed. */
 export function reclassify(c: UserCase, now: Date = new Date()): UserCase {
-  const { status } = classifyCase(c, now);
+  const { status, reasons } = classifyCase(c, now);
   if (status === c.caseStatus) return c;
   return {
     ...c,
     caseStatus: status,
+    completedActionIds: [], // A changed plan requires fresh review.
     events: [
       ...c.events,
       {
         id: makeId("evt"),
         type: "STATUS_CHANGED",
-        description: `Case status changed to ${STATUS_META[status].label}`,
+        description: `Case status changed to ${STATUS_META[status].label}: ${reasons.join(" ")}`,
         date: now.toISOString(),
         isUserAction: false,
       },
@@ -62,7 +63,7 @@ export const UPDATE_OPTIONS: { type: CaseUpdateType; label: string; group: "Land
   { type: "PAYMENT_MADE", label: "I made a payment", group: "Landlord" },
   { type: "ASSISTANCE_APPLIED", label: "I applied for rental assistance", group: "Assistance" },
   { type: "ASSISTANCE_APPROVED", label: "Rental assistance was approved", group: "Assistance" },
-  { type: "ASSISTANCE_DENIED", label: "Rental assistance was denied / unavailable", group: "Assistance" },
+  { type: "ASSISTANCE_DENIED", label: "One rental-assistance application was denied", group: "Assistance" },
   { type: "ASSISTANCE_WAITLISTED", label: "I was waitlisted for assistance", group: "Assistance" },
   { type: "LEGAL_AID_CONTACTED", label: "I contacted legal aid", group: "Legal" },
   { type: "COURT_DATE_SET", label: "I received a court date", group: "Legal" },
@@ -84,7 +85,8 @@ export function applyCaseUpdate(c: UserCase, update: CaseUpdate, now: Date = new
       next = { ...next, contactedLandlord: true, paymentPlanDiscussed: true, paymentPlanRejected: true, paymentPlanAccepted: false };
       break;
     case "PAYMENT_MADE": {
-      const paid = Math.max(0, update.amountPaid ?? 0);
+      if (!Number.isFinite(update.amountPaid) || update.amountPaid! <= 0 || update.amountPaid! > next.amountOwed) throw new Error("Enter a positive payment no greater than the outstanding debt.");
+      const paid = Math.round(update.amountPaid! * 100) / 100;
       next = {
         ...next,
         amountOwed: Math.max(0, next.amountOwed - paid),
@@ -94,21 +96,22 @@ export function applyCaseUpdate(c: UserCase, update: CaseUpdate, now: Date = new
       break;
     }
     case "ASSISTANCE_APPLIED":
-      next = { ...next, appliedForAssistance: true, assistanceStatus: "WAITLISTED" };
+      next = { ...next, appliedForAssistance: true, assistanceStatus: "PENDING", approvedAssistanceAmount: undefined, approvedAssistanceAvailableDate: undefined };
       break;
     case "ASSISTANCE_APPROVED":
       next = { ...next, appliedForAssistance: true, assistanceStatus: "APPROVED" };
       break;
     case "ASSISTANCE_DENIED":
-      next = { ...next, appliedForAssistance: true, assistanceStatus: "DENIED" };
+      next = { ...next, appliedForAssistance: true, assistanceStatus: "DENIED", approvedAssistanceAmount: undefined, approvedAssistanceAvailableDate: undefined };
       break;
     case "ASSISTANCE_WAITLISTED":
-      next = { ...next, appliedForAssistance: true, assistanceStatus: "WAITLISTED" };
+      next = { ...next, appliedForAssistance: true, assistanceStatus: "WAITLISTED", approvedAssistanceAmount: undefined, approvedAssistanceAvailableDate: undefined };
       break;
     case "LEGAL_AID_CONTACTED":
       next = { ...next, legalAidContacted: true };
       break;
     case "COURT_DATE_SET":
+      if (!update.courtDate || !isISODate(update.courtDate)) throw new Error("A valid court date is required.");
       if (update.courtDate) {
         next = {
           ...next,
@@ -131,6 +134,10 @@ export function applyCaseUpdate(c: UserCase, update: CaseUpdate, now: Date = new
 
   if (update.note) description += ` — ${update.note}`;
   next.events = [...c.events, { id: makeId("evt"), type: update.type, description, date: now.toISOString(), isUserAction: true }];
+  if (next.courtDate !== c.courtDate || next.evictionStage !== c.evictionStage) {
+    const reviewAgain = new Set(["attend-hearing", "attend-hearing-recovery", "prepare-hearing", "contact-legal-aid", "follow-up-legal-aid", "confirm-court-date", "judgment-options", "file-answer"]);
+    next.completedActionIds = c.completedActionIds.filter(id => !reviewAgain.has(id));
+  }
   next.updatedAt = now.toISOString();
   return reclassify(next, now);
 }
@@ -144,6 +151,8 @@ export function toggleActionCompleted(c: UserCase, actionId: string): UserCase {
 
 /** Apply user-confirmed fields from an uploaded document. Pure. */
 export function applyExtractedDocument(c: UserCase, doc: ExtractedDocument, now: Date = new Date()): UserCase {
+  if (doc.amountClaimed != null && (!Number.isFinite(doc.amountClaimed) || doc.amountClaimed < 0)) throw new Error("Invalid document amount.");
+  if (doc.courtDate && !isISODate(doc.courtDate)) throw new Error("Invalid document court date.");
   const next: UserCase = { ...c };
   const changes: string[] = [];
 
@@ -178,6 +187,10 @@ export function applyExtractedDocument(c: UserCase, doc: ExtractedDocument, now:
       isUserAction: true,
     },
   ];
+  if (next.courtDate !== c.courtDate || next.evictionStage !== c.evictionStage) {
+    const reviewAgain = new Set(["attend-hearing", "attend-hearing-recovery", "prepare-hearing", "contact-legal-aid", "follow-up-legal-aid", "confirm-court-date", "judgment-options", "file-answer"]);
+    next.completedActionIds = c.completedActionIds.filter(id => !reviewAgain.has(id));
+  }
   next.updatedAt = now.toISOString();
   return reclassify(next, now);
 }
