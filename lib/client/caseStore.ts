@@ -47,7 +47,9 @@ export function clearCase(): void {
 }
 
 /** React hook: current case (or null) plus a loaded flag to avoid hydration flashes. */
-export function useCase() {
+/** The raw browser copy, including a guest's unsaved answers. Pages should use `useCase` from ./account,
+ * which hides the plan unless someone is signed in. */
+export function useLocalCase() {
   const [userCase, setUserCase] = useState<UserCase | null>(null);
   const [loaded, setLoaded] = useState(false);
 

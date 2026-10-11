@@ -1,10 +1,10 @@
 "use client";
 
+import { useCase } from "@/lib/client/account";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 import { Briefcase, Compass } from "lucide-react";
 import type { ResourceCategory, UserCase } from "@/types";
-import { useCase } from "@/lib/client/caseStore";
 import { useResources } from "@/lib/client/useResources";
 import { CATEGORY_LABELS, matchResources } from "@/lib/engine/resourceMatcher";
 import { Card, CardHeader } from "@/components/ui/Card";

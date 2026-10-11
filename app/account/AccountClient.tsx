@@ -6,8 +6,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { AlertCircle, CheckCircle2, CloudOff, Eye, EyeOff, Loader2, Lock, LogOut, Sparkles, UserRound } from "lucide-react";
-import { signIn, signInDemo, signOut, signUp, useAccount } from "@/lib/client/account";
-import { clearCase, useCase } from "@/lib/client/caseStore";
+import { signIn, signInDemo, signOut, signUp, useAccount, useCase } from "@/lib/client/account";
+import { clearCase, useLocalCase } from "@/lib/client/caseStore";
 import { DEMO_ACCOUNT } from "@/lib/demo/demoAccount";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -51,7 +51,7 @@ function Redirecting() {
 
 function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: () => void }) {
   const { text, tr } = useI18n();
-  const hasLocalPlan = Boolean(useCase().userCase);
+  const hasLocalPlan = Boolean(useLocalCase().userCase);
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

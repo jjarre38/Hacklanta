@@ -1,12 +1,12 @@
 "use client";
 
+import { useCase } from "@/lib/client/account";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Info, SearchX } from "lucide-react";
 import type { ResourceCategory } from "@/types";
-import { useCase } from "@/lib/client/caseStore";
 import { useResources } from "@/lib/client/useResources";
 import { CATEGORY_LABELS, matchResources } from "@/lib/engine/resourceMatcher";
 import { calculateFinancialGap } from "@/lib/engine/resourceCombinationEngine";

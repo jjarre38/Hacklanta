@@ -8,8 +8,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Lock, Menu, UserRound, X } from "lucide-react";
-import { useCase } from "@/lib/client/caseStore";
-import { startAccountSync, useAccount } from "@/lib/client/account";
+import { startAccountSync, useAccount, useCase } from "@/lib/client/account";
 
 const LINKS = [
   { href: "/dashboard", label: "My Plan" },

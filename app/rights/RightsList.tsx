@@ -1,6 +1,6 @@
 "use client";
 
-import { useCase } from "@/lib/client/caseStore";
+import { useCase } from "@/lib/client/account";
 import { effectiveStage } from "@/lib/engine/caseClassifier";
 import { RIGHTS_CONTENT } from "@/lib/data/rightsContent";
 import { RightsCard } from "@/components/rights/RightsCard";

@@ -7,7 +7,7 @@ import { userCaseSchema } from "@/lib/validation/case";
 import { reclassify } from "@/lib/services/caseService";
 import { DEMO_ACCOUNT } from "@/lib/demo/demoAccount";
 import { getSupabaseBrowser } from "./supabaseBrowser";
-import { CHANGE_EVENT, clearCase, loadCase, saveCase } from "./caseStore";
+import { CHANGE_EVENT, clearCase, loadCase, saveCase, useLocalCase } from "./caseStore";
 
 // Accounts and case sync.
 //
@@ -192,4 +192,14 @@ function subscribe(listener: () => void) {
 /** Current account and sync state. */
 export function useAccount(): AccountState {
   return useSyncExternalStore(subscribe, () => state, () => INITIAL);
+}
+
+/** The user's plan, for pages. Signed-out visitors get no plan (a guest's answers stay in the browser
+ * only until they sign in). As with My Plan, it stays available when accounts aren't configured. */
+export function useCase() {
+  const local = useLocalCase();
+  const { status } = useAccount();
+  if (status === "loading") return { ...local, userCase: null, loaded: false };
+  if (status === "signed-out") return { ...local, userCase: null };
+  return local;
 }

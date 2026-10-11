@@ -1,11 +1,11 @@
 "use client";
 
+import { useCase } from "@/lib/client/account";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 import { useEffect, useState } from "react";
 import { Building2, Lightbulb } from "lucide-react";
 import type { ResourceMatch } from "@/types";
-import { useCase } from "@/lib/client/caseStore";
 import { useResources } from "@/lib/client/useResources";
 import { BARRIER_LABELS, CATEGORY_LABELS, matchResources } from "@/lib/engine/resourceMatcher";
 import { housingGuidance, type HousingPreferences } from "@/lib/engine/housingGuidance";

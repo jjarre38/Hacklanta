@@ -1,10 +1,10 @@
 "use client";
 
+import { useCase } from "@/lib/client/account";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 import { useState } from "react";
 import type { UserCase } from "@/types";
-import { useCase } from "@/lib/client/caseStore";
 import { createCaseFromIntake } from "@/lib/services/caseService";
 import { PaymentPlanCalculator } from "@/components/paymentplan/PaymentPlanCalculator";
 import { Card } from "@/components/ui/Card";
