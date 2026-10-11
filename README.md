@@ -27,6 +27,15 @@ Open http://localhost:3000. The Maria flow and resource catalog require **no cre
 
 Maria starts with $1,400 owed and $500 available for housing: **$900 remains**. Her $450 paycheck is excluded until explicitly allocated. Matches never become awards through arithmetic. Her payment proposal is an editable illustration, not certified affordable.
 
+| Variable | Required | Used for |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | For AI features | Drafting landlord messages and extracting data from uploaded documents. Without it, those two features show a "not configured" message. Everything else still works. |
+| `ELEVENLABS_API_KEY` | For voice narration | Server-only key for the dashboard's Listen to your plan feature. Requires text-to-speech permission and available credits. |
+| `ELEVENLABS_VOICE_ID` | Optional | Voice ID; defaults to George (`JBFqnCBsd6RMkjVDRZzb`). |
+| `ELEVENLABS_MODEL_ID` | Optional | Speech model; defaults to `eleven_multilingual_v2`. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase browser key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Server-side writes (cases, documents, storage) |
 A declined plan or denied assistance application does not establish that preservation is exhausted. The explicit simulation changes structured financial-path availability, recomputes the plan, and prioritizes recovery while retaining legal help. The MOVE budget is an illustrative $2,900, leaving $2,400 after housing cash; existing rent debt is separate.
 
 **The existing visual demo callbacks and financial/privacy labels need the changes in [UI_HANDOFF](docs/UI_HANDOFF.md).** Backend/API behavior is tested, but do not present the current visual transition as integrated. The teammate's visual files were intentionally untouched.
@@ -53,6 +62,11 @@ Civil dates use America/New_York. Court-day differences prioritize tasks; they a
 | `HOMEPATH_AI_ACCESS_TOKEN` | Private operator bearer token, at least 32 characters; never put in browser code |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Legacy optional setup variables; do not enable guest persistence or remote catalog loading |
 
+### Voice demo
+
+Set `ELEVENLABS_API_KEY` in `.env.local` and restart the development server (or set it in your hosting environment and redeploy). On Maria's dashboard, click **Read my plan**. The player supports pause, seeking, and replay. Audio is generated only when the button is clicked. The narrated summary is sent to ElevenLabs; generated audio stays in browser memory and is discarded when the plan changes or the component unmounts. Browser autoplay restrictions may require pressing play. No extra SDK is required. API reference: https://elevenlabs.io/docs/api-reference/text-to-speech/convert.
+
+## Architecture
 Protected live AI also requires explicit consent to third-party processing. Ordinary public-browser AI requests remain disabled. The offline sample and manual case entry work without AI. No live model call is needed to demonstrate the engine.
 
 Guest cases stay in localStorage until cleared, including across browser restarts. Initial intake is processed by the server without retention. No uploaded documents or extractions are stored in cloud storage. Previously stored cloud records, if any, are not automatically deleted. See [SECURITY_PRIVACY](docs/SECURITY_PRIVACY.md).
