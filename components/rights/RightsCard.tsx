@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { BookOpen, ExternalLink, Star } from "lucide-react";
 import type { RightsCardContent } from "@/lib/data/rightsContent";
 import { formatDate } from "@/lib/format";
+import { Expandable } from "@/components/ui/Expandable";
 
 export function RightsCard({ card, highlighted }: { card: RightsCardContent; highlighted: boolean }) {
   return (
@@ -19,21 +20,23 @@ export function RightsCard({ card, highlighted }: { card: RightsCardContent; hig
       )}
       <h2 className="text-lg font-semibold text-ink">{card.title}</h2>
       <p className="mt-1.5 text-base text-ink-soft">{card.summary}</p>
-      <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-soft">
-        {card.points.map((p) => (
-          <li key={p}>{p}</li>
-        ))}
-      </ul>
-      {card.terms && (
-        <dl className="mt-4 space-y-1.5 rounded-xl bg-slate-50 p-3 text-sm">
-          {card.terms.map((t) => (
-            <div key={t.term}>
-              <dt className="inline font-semibold text-ink">{t.term}: </dt>
-              <dd className="inline text-ink-soft">{t.meaning}</dd>
-            </div>
+      <Expandable collapsedHeight={220}>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-soft">
+          {card.points.map((p) => (
+            <li key={p}>{p}</li>
           ))}
-        </dl>
-      )}
+        </ul>
+        {card.terms && (
+          <dl className="mt-4 space-y-1.5 rounded-xl bg-slate-50 p-3 text-sm">
+            {card.terms.map((t) => (
+              <div key={t.term}>
+                <dt className="inline font-semibold text-ink">{t.term}: </dt>
+                <dd className="inline text-ink-soft">{t.meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </Expandable>
       <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-ink-muted">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <BookOpen className="h-3.5 w-3.5" aria-hidden />

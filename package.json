@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed-sql": "tsx scripts/generate-seed.ts",
+    "db:demo-account": "node --env-file=.env.local --import tsx scripts/create-demo-account.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --conditions=react-server --import tsx --test tests/*.test.ts",
     "demo:evidence": "node --import tsx scripts/demo-evidence.ts"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { Calculator, Loader2, MessageSquareText, Plus, RotateCcw, Trash2 } from "lucide-react";
 import type { PaymentInstallment, PaymentPlan, UserCase } from "@/types";
@@ -9,6 +9,7 @@ import { addDays, formatMoney, parseDate, toISODate } from "@/lib/format";
 import { DRAFT_DISCLAIMER } from "@/lib/copy";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { Expandable } from "@/components/ui/Expandable";
 import { DraftedMessage } from "./DraftedMessage";
 
 type Tone = "professional" | "warm";
@@ -29,7 +30,16 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
     setPlan((p) => ({ ...p, installments: p.installments.map((inst, i) => (i === index ? { ...inst, ...patch } : inst)) }));
   }
 
+  // Focus a newly added payment row. This also expands the list if it's collapsed, so the new row is never hidden.
+  const focusNewRow = useRef(false);
+  useEffect(() => {
+    if (!focusNewRow.current) return;
+    focusNewRow.current = false;
+    document.getElementById(`inst-amount-${plan.installments.length - 1}`)?.focus();
+  }, [plan.installments.length]);
+
   function addInstallment() {
+    focusNewRow.current = true;
     setPlan((p) => {
       const last = p.installments[p.installments.length - 1];
       const date = last ? addDays(parseDate(last.dueDate), 14) : addDays(new Date(), 14);
@@ -109,62 +119,64 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
         </div>
       </div>
 
-      <ul className="mt-5 space-y-3">
-        {plan.installments.map((inst, i) => (
-          <li key={i} className="relative grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end sm:gap-3">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-label-${i}`}>
-                Payment
-              </label>
-              <input
-                id={`inst-label-${i}`}
-                className="field-input mt-1 py-2"
-                value={inst.label}
-                maxLength={60}
-                onChange={(e) => updateInstallment(i, { label: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-amount-${i}`}>
-                Amount
-              </label>
-              <div className="relative mt-1">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">$</span>
+      <Expandable collapsedHeight={480} noun="payments" className="mt-5">
+        <ul className="space-y-3">
+          {plan.installments.map((inst, i) => (
+            <li key={i} className="relative grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end sm:gap-3">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-label-${i}`}>
+                  Payment
+                </label>
                 <input
-                  id={`inst-amount-${i}`}
-                  type="number"
-                  min={0}
-                  inputMode="decimal"
-                  className="field-input py-2 pl-7 tabular-nums"
-                  value={Number.isFinite(inst.amount) ? inst.amount : ""}
-                  onChange={(e) => updateInstallment(i, { amount: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) })}
+                  id={`inst-label-${i}`}
+                  className="field-input mt-1 py-2"
+                  value={inst.label}
+                  maxLength={60}
+                  onChange={(e) => updateInstallment(i, { label: e.target.value })}
                 />
               </div>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-date-${i}`}>
-                Date
-              </label>
-              <input
-                id={`inst-date-${i}`}
-                type="date"
-                className="field-input mt-1 py-2"
-                value={inst.dueDate}
-                onChange={(e) => e.target.value && updateInstallment(i, { dueDate: e.target.value })}
-              />
-            </div>
-            {/* On phones the delete button sits in the row's top-right corner instead of taking its own line. */}
-            <button
-              type="button"
-              onClick={() => removeInstallment(i)}
-              className="absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-slate-100 hover:text-coral-600 sm:static sm:h-11 sm:w-11 sm:self-end"
-              aria-label={`Remove ${inst.label}`}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden />
-            </button>
-          </li>
-        ))}
-      </ul>
+              <div>
+                <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-amount-${i}`}>
+                  Amount
+                </label>
+                <div className="relative mt-1">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-ink-muted">$</span>
+                  <input
+                    id={`inst-amount-${i}`}
+                    type="number"
+                    min={0}
+                    inputMode="decimal"
+                    className="field-input py-2 pl-7 tabular-nums"
+                    value={Number.isFinite(inst.amount) ? inst.amount : ""}
+                    onChange={(e) => updateInstallment(i, { amount: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) })}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-date-${i}`}>
+                  Date
+                </label>
+                <input
+                  id={`inst-date-${i}`}
+                  type="date"
+                  className="field-input mt-1 py-2"
+                  value={inst.dueDate}
+                  onChange={(e) => e.target.value && updateInstallment(i, { dueDate: e.target.value })}
+                />
+              </div>
+              {/* On phones the delete button sits in the row's top-right corner instead of taking its own line. */}
+              <button
+                type="button"
+                onClick={() => removeInstallment(i)}
+                className="absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-slate-100 hover:text-coral-600 sm:static sm:h-11 sm:w-11 sm:self-end"
+                aria-label={`Remove ${inst.label}`}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Expandable>
       <Button variant="outline" size="sm" className="mt-3" onClick={addInstallment} disabled={plan.installments.length >= 12}>
         <Plus className="h-4 w-4" aria-hidden /> Add payment
       </Button>

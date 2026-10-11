@@ -15,6 +15,7 @@ import { ResourceFilters, type ResourceFilterState } from "@/components/resource
 import { ResourceCombinationPanel } from "@/components/resources/ResourceCombinationPanel";
 import { DemoBadge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
+import { Expandable } from "@/components/ui/Expandable";
 
 export function ResourcesClient() {
   const params = useSearchParams();
@@ -87,11 +88,14 @@ export function ResourcesClient() {
               </p>
             </div>
           ) : (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {matches.map((m) => (
-                <ResourceCard key={m.resource.id} match={m} />
-              ))}
-            </div>
+            // Re-collapse when the filters change so a new result set starts at the top.
+            <Expandable key={`${filters.category}-${filters.county}-${filters.openOnly}`} collapsedHeight={1600} fadeClassName="from-canvas" noun="resources" className="mt-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {matches.map((m) => (
+                  <ResourceCard key={m.resource.id} match={m} />
+                ))}
+              </div>
+            </Expandable>
           )}
         </div>
 

@@ -9,6 +9,8 @@ import type { UserCase } from "@/types";
 import { conditionalIssues, intakeSchema, type IntakeValues } from "@/lib/intake/schema";
 import { INTAKE_STEPS } from "@/lib/intake/steps";
 import { mariaIntake } from "@/lib/demo/mariaSeed";
+import { useAccount } from "@/lib/client/account";
+import { useCase } from "@/lib/client/caseStore";
 import { createCaseFromIntake } from "@/lib/services/caseService";
 import { getSessionId, saveCase } from "@/lib/client/caseStore";
 import { PRIVACY_NOTE } from "@/lib/copy";
@@ -91,6 +93,10 @@ export function IntakeWizard() {
     }
   }
 
+  const account = useAccount();
+  const { userCase, loaded } = useCase();
+  const newAccount = account.status === "signed-in" && account.caseReady && loaded && !userCase;
+
   function loadMaria() {
     form.reset({ ...DEFAULTS, ...mariaIntake() });
     setStepIndex(INTAKE_STEPS.length - 1);
@@ -98,6 +104,12 @@ export function IntakeWizard() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      {newAccount && (
+        <p className="mb-5 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900" role="status">
+          <span className="font-semibold">Welcome to HomePath!</span> Answer these questions to build your plan. It&apos;ll be saved to your account
+          {account.email ? ` (${account.email})` : ""}.
+        </p>
+      )}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-violet-800">{step.group}</p>

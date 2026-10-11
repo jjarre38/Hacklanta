@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { Loader2, Volume2, Square } from "lucide-react";
 import type { ActionItem, UserCase } from "@/types";
 import { STATUS_META } from "@/lib/engine/caseClassifier";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
-export function VoicePlan({ userCase, actions }: { userCase: UserCase; actions: ActionItem[] }) {
+/** `compact` is the mobile layout: no top margin, shorter copy, and full-width buttons. */
+export function VoicePlan({ userCase, actions, compact = false }: { userCase: UserCase; actions: ActionItem[]; compact?: boolean }) {
   const remaining = actions.filter((action) => !action.completed).slice(0, 5);
   const narration = [
     "Let's take this one step at a time. Here is your HomePath plan.",
@@ -81,21 +83,21 @@ export function VoicePlan({ userCase, actions }: { userCase: UserCase; actions: 
   }, []);
 
   return (
-    <Card className="mt-6 border-violet-200 bg-violet-50/60">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <Card className={clsx("border-brand-200 bg-brand-50/40", !compact && "mt-6")}>
+      <div className={clsx("flex flex-col sm:flex-row sm:items-center sm:justify-between", compact ? "gap-3" : "gap-4")}>
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-violet-950"><Volume2 className="h-5 w-5 text-violet-700" aria-hidden /> Listen to your plan</h2>
-          <p className="mt-1 text-sm text-ink-soft">A calm voice walks you through your next steps. Powered by ElevenLabs.</p>
+          <h2 className={clsx("flex items-center gap-2 font-semibold", compact ? "text-base" : "text-lg")}><Volume2 className="h-5 w-5 text-brand-600" aria-hidden /> Listen to your plan</h2>
+          <p className="mt-1 text-sm text-ink-soft">{compact ? "Hear your next steps read aloud." : "A calm voice walks you through your next steps. Powered by ElevenLabs."}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => void listen(narration)} disabled={busy}>
+          <Button onClick={() => void listen(narration)} disabled={busy} className={clsx(compact && "flex-1")}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
             {busy ? "Creating audio…" : "Read my plan"}
           </Button>
           {(busy || audioUrl) && <Button variant="outline" onClick={stop}><Square className="h-4 w-4" aria-hidden /> Stop</Button>}
         </div>
       </div>
-      <p className="mt-3 text-xs text-ink-muted">When you listen, your plan summary is sent to ElevenLabs to generate speech.</p>
+      <p className={clsx("text-xs text-ink-muted", compact ? "mt-2" : "mt-3")}>When you listen, your plan summary is sent to ElevenLabs to generate speech.</p>
       {audioUrl && <audio ref={audio} src={audioUrl} controls className="mt-4 w-full" aria-label="Your HomePath plan narration" onError={() => setError("Audio playback failed. Please try generating it again.")} />}
       {error && <p role="status" className="mt-3 text-sm text-ink-soft">{error}</p>}
     </Card>

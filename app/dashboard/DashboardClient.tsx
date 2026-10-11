@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { ArrowRight, Calculator, ClipboardList, HeartHandshake, ListChecks, RefreshCw, Sparkles, Wallet, X, type LucideIcon } from "lucide-react";
@@ -8,6 +9,7 @@ import type { CaseStatus, CaseUpdate, ExtractedDocument, HousingBarrier, UserCas
 import { clearCase, useCase } from "@/lib/client/caseStore";
 import { useResources } from "@/lib/client/useResources";
 import { useIsMobile } from "@/lib/client/useIsMobile";
+import { useAccount } from "@/lib/client/account";
 import { applyCaseUpdate, applyExtractedDocument, createCaseFromIntake, toggleActionCompleted } from "@/lib/services/caseService";
 import { generateActionPlan } from "@/lib/services/recommendationService";
 import { matchResources } from "@/lib/engine/resourceMatcher";
@@ -50,13 +52,23 @@ export function DashboardClient() {
   const latest = useRef<UserCase | null>(null);
   latest.current = userCase;
 
+  // Signed-in accounts without a plan must complete the questionnaire first.
+  const router = useRouter();
+  const account = useAccount();
+  const signedIn = account.status === "signed-in";
+  const mustDoIntake = loaded && !userCase && signedIn && account.caseReady;
+  useEffect(() => {
+    if (mustDoIntake) router.replace("/intake");
+  }, [mustDoIntake, router]);
+
   useEffect(() => {
     if (!justChanged) return;
     const t = setTimeout(() => setJustChanged(false), 1600);
     return () => clearTimeout(t);
   }, [justChanged]);
 
-  if (!loaded) return <DashboardSkeleton />;
+  // Also hold the skeleton while a signed-in account's plan is still loading, so its empty state doesn't flash.
+  if (!loaded || (!userCase && signedIn && (!account.caseReady || mustDoIntake))) return <DashboardSkeleton />;
   if (!userCase) return <EmptyState onLoadMaria={() => update(createCaseFromIntake(mariaIntake()))} />;
 
   /** Save a new version of the case and surface any status change. */
@@ -187,6 +199,7 @@ export function DashboardClient() {
           {current === "actions" && (
             <>
               {recovery && <RecoveryMode userCase={userCase} resources={resources} onBarrierChange={setBarrier} />}
+              <VoicePlan userCase={userCase} actions={actions} compact />
               {actionPlan}
             </>
           )}

@@ -33,9 +33,9 @@ Maria starts with $1,400 owed and $500 available for housing: **$900 remains**. 
 | `ELEVENLABS_API_KEY` | For voice narration | Server-only key for the dashboard's Listen to your plan feature. Requires text-to-speech permission and available credits. |
 | `ELEVENLABS_VOICE_ID` | Optional | Voice ID; defaults to George (`JBFqnCBsd6RMkjVDRZzb`). |
 | `ELEVENLABS_MODEL_ID` | Optional | Speech model; defaults to `eleven_multilingual_v2`. |
-| `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase browser key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional | Server-side writes (cases, documents, storage) |
+| `NEXT_PUBLIC_SUPABASE_URL` | For accounts | Supabase project URL. Turns on sign-in and saving plans to an account. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For accounts | Supabase public (anon) key used by the browser; row-level security limits each user to their own saved plan. |
+| `SUPABASE_SERVICE_ROLE_KEY` | For the demo account script | Server/script-only admin key used by `npm run db:demo-account`. Never prefix with `NEXT_PUBLIC_`. |
 A declined plan or denied assistance application does not establish that preservation is exhausted. The explicit simulation changes structured financial-path availability, recomputes the plan, and prioritizes recovery while retaining legal help. The MOVE budget is an illustrative $2,900, leaving $2,400 after housing cash; existing rent debt is separate.
 
 **The existing visual demo callbacks and financial/privacy labels need the changes in [UI_HANDOFF](docs/UI_HANDOFF.md).** Backend/API behavior is tested, but do not present the current visual transition as integrated. The teammate's visual files were intentionally untouched.
@@ -60,11 +60,26 @@ Civil dates use America/New_York. Court-day differences prioritize tasks; they a
 |---|---|
 | `ANTHROPIC_API_KEY` | Optional server-side key; alone does not enable public AI |
 | `HOMEPATH_AI_ACCESS_TOKEN` | Private operator bearer token, at least 32 characters; never put in browser code |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Legacy optional setup variables; do not enable guest persistence or remote catalog loading |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Enable opt-in accounts (see below). Guest persistence and remote catalog loading stay disabled. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Used only by the demo-account script |
 
 ### Voice demo
 
 Set `ELEVENLABS_API_KEY` in `.env.local` and restart the development server (or set it in your hosting environment and redeploy). On Maria's dashboard, click **Read my plan**. The player supports pause, seeking, and replay. Audio is generated only when the button is clicked. The narrated summary is sent to ElevenLabs; generated audio stays in browser memory and is discarded when the plan changes or the component unmounts. Browser autoplay restrictions may require pressing play. No extra SDK is required. API reference: https://elevenlabs.io/docs/api-reference/text-to-speech/convert.
+
+### Accounts
+
+Accounts are optional. Guests keep using HomePath exactly as before, with their plan stored only in their browser.
+
+1. Create a free project at https://supabase.com.
+2. In **Project Settings → API**, copy the project URL, the `anon` public key, and the `service_role` key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+3. In the **SQL Editor**, run `supabase/accounts.sql`. It creates the `account_cases` table (one saved plan per user) with row-level security so users can only read and write their own row.
+4. Optional, for demos: in **Authentication → Sign In / Providers → Email**, turn off **Confirm email** so new accounts can sign in immediately. Otherwise new users must click the emailed link first.
+5. Run `npm run db:demo-account` to create the demo account with Maria's case, then restart `npm run dev` (Next.js reads `NEXT_PUBLIC_` variables at startup).
+
+Sign in at `/account`. The demo login is `demo@homepath.app` / `HomePathDemo2026!` (also shown on the sign-in page, with a one-click button). It's shared and public, so only Maria's fictional case belongs in it; re-run `npm run db:demo-account` to reset it.
+
+How saving works: the browser copy is still the working plan. When you sign in, the plan saved to your account loads (or, for a new account, the plan you built as a guest is saved to it). Every change is saved to the account, clearing the case deletes the saved copy, and signing out removes the plan from that browser. See `lib/client/account.ts`.
 
 ## Architecture
 Protected live AI also requires explicit consent to third-party processing. Ordinary public-browser AI requests remain disabled. The offline sample and manual case entry work without AI. No live model call is needed to demonstrate the engine.
