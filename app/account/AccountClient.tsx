@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { AlertCircle, CheckCircle2, CloudOff, Loader2, LogOut, Sparkles, UserRound } from "lucide-react";
+import { AlertCircle, CheckCircle2, CloudOff, Eye, EyeOff, Loader2, LogOut, Sparkles, UserRound } from "lucide-react";
 import { signIn, signInDemo, signOut, signUp, useAccount } from "@/lib/client/account";
 import { clearCase, useCase } from "@/lib/client/caseStore";
 import { DEMO_ACCOUNT } from "@/lib/demo/demoAccount";
@@ -34,6 +34,7 @@ function SignInForm() {
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState<"form" | "demo" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -113,16 +114,28 @@ function SignInForm() {
             <label htmlFor="account-password" className="field-label">
               Password
             </label>
-            <input
-              id="account-password"
-              type="password"
-              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
-              required
-              minLength={8}
-              className="field-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                id="account-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+                required
+                minLength={8}
+                className="field-input pr-12"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                aria-controls="account-password"
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-ink-muted hover:text-ink"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" aria-hidden /> : <Eye className="h-5 w-5" aria-hidden />}
+              </button>
+            </div>
             {mode === "sign-up" && <p className="mt-1 text-xs text-ink-muted">At least 8 characters.</p>}
           </div>
           {error && (
