@@ -6,6 +6,24 @@
   html {
     -webkit-text-size-adjust: 100%;
   }
+  * {
+    scrollbar-color: #9276b0 #f1ebf7;
+  }
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1ebf7;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #9276b0;
+    border: 3px solid #f1ebf7;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #75558e;
+  }
   body {
     @apply bg-canvas text-ink font-sans;
   }
@@ -27,10 +45,10 @@
     padding-bottom: calc(60px + env(safe-area-inset-bottom));
   }
   .field-label {
-    @apply mb-1.5 block text-sm font-medium text-ink;
+    @apply mb-1.5 block text-sm font-medium text-violet-900;
   }
   .field-input {
-    @apply block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-ink shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200;
+    @apply block w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-base text-ink shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200;
   }
   .field-error {
     @apply mt-1.5 text-sm text-coral-600;

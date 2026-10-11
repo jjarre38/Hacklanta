@@ -6,14 +6,14 @@ import { formatMoney } from "@/lib/format";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { DemoBadge } from "@/components/ui/Badge";
 
-const SOURCE_COLORS = ["bg-brand-400", "bg-sage-400", "bg-dusk-500", "bg-amber-400", "bg-brand-700"];
+const SOURCE_COLORS = ["bg-violet-400", "bg-purple-400", "bg-violet-500", "bg-fuchsia-400", "bg-purple-700"];
 
 /** Stacked bar showing how funds + programs could combine to cover the need. */
 export function GapBar({ gap }: { gap: FinancialGap }) {
   const total = Math.max(1, gap.amountOwed);
   const segments = [
-    { label: "Available today", amount: Math.min(gap.availableToday, total), color: "bg-sage-600" },
-    { label: "Next paycheck", amount: Math.min(gap.nextPaycheckContribution, Math.max(0, total - gap.availableToday)), color: "bg-sage-400" },
+    { label: "Available today", amount: Math.min(gap.availableToday, total), color: "bg-violet-700" },
+    { label: "Next paycheck", amount: Math.min(gap.nextPaycheckContribution, Math.max(0, total - gap.availableToday)), color: "bg-violet-300" },
     ...gap.sources.map((s, i) => ({ label: s.name, amount: s.estimatedAmount, color: SOURCE_COLORS[i % SOURCE_COLORS.length], striped: true })),
   ].filter((s) => s.amount > 0);
 
@@ -56,25 +56,25 @@ export function GapBar({ gap }: { gap: FinancialGap }) {
 export function ResourceCombinationPanel({ gap }: { gap: FinancialGap }) {
   const isMove = gap.mode === "MOVE";
   return (
-    <Card>
+    <Card className="border-violet-200 bg-violet-50/30">
       <CardHeader
-        icon={<Layers className="h-5 w-5" />}
+        icon={<Layers className="h-5 w-5 text-violet-700" />}
         title={isMove ? "Covering move-in costs" : "Closing your rent gap"}
         description={isMove ? "How your funds and programs could combine for a new place." : "How your funds and assistance programs could combine."}
         action={<DemoBadge label="Estimates" />}
       />
       <div className="mb-4 grid grid-cols-3 gap-3 text-center">
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-xl bg-violet-50 p-3">
           <p className="text-xs text-ink-muted">{isMove ? "Estimated need" : "Owed"}</p>
           <p className="text-lg font-bold tabular-nums">{formatMoney(gap.amountOwed)}</p>
         </div>
-        <div className="rounded-xl bg-slate-50 p-3">
+        <div className="rounded-xl bg-violet-50 p-3">
           <p className="text-xs text-ink-muted">Gap before help</p>
           <p className="text-lg font-bold tabular-nums">{formatMoney(gap.gapBeforeAssistance)}</p>
         </div>
-        <div className={`rounded-xl p-3 ${gap.remainingGap === 0 ? "bg-sage-50" : "bg-amber-50"}`}>
+        <div className={`rounded-xl p-3 ${gap.remainingGap === 0 ? "bg-violet-100" : "bg-amber-50"}`}>
           <p className="text-xs text-ink-muted">After programs</p>
-          <p className={`text-lg font-bold tabular-nums ${gap.remainingGap === 0 ? "text-sage-700" : "text-amber-800"}`}>
+          <p className={`text-lg font-bold tabular-nums ${gap.remainingGap === 0 ? "text-violet-800" : "text-amber-800"}`}>
             {gap.remainingGap === 0 ? "Covered" : formatMoney(gap.remainingGap)}
           </p>
         </div>

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
+import { PageBanner } from "@/components/layout/PageBanner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -17,15 +18,15 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "HomePath — What can I still do next?",
-    template: "%s · HomePath",
+    default: "HomePath â€” What can I still do next?",
+    template: "%s Â· HomePath",
   },
   description:
     "HomePath helps Metro Atlanta renters facing eviction understand their situation, find local help, and build a plan for what comes next.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563b8",
+  themeColor: "#302044",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </a>
         <Navigation />
         <main id="main" className="flex-1">
+          <PageBanner />
           {children}
         </main>
         <Footer />

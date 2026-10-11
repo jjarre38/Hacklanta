@@ -1,24 +1,22 @@
-import {
-  ArrowRight,
-  CalendarClock,
-  CheckCircle2,
-  ClipboardList,
-  Compass,
-  HandCoins,
-  HeartHandshake,
-  MapPin,
-  Route,
-  Scale,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, ClipboardList, Compass, HandCoins, MapPin, Route, Scale, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Badge, DemoBadge } from "@/components/ui/Badge";
+import { DemoBadge } from "@/components/ui/Badge";
 import { SERVICE_COUNTIES, SERVICE_REGION_NAME } from "@/lib/data/serviceArea";
 import { RESOURCES } from "@/lib/data/resources";
 
-const IMPACT_METRICS = [
+const STEPS = [
+  { icon: ClipboardList, title: "Tell us your situation", body: "A few simple questions. No account, SSN, or bank information needed.", image: "step-questions", alt: "A person writing answers in a notebook" },
+  { icon: Route, title: "Get a clear plan", body: "Know what to do today, before court, and in the week ahead.", image: "step-plan", alt: "Notes and planning materials on a desk" },
+  { icon: HandCoins, title: "Connect with local help", body: "Find nearby support and build a payment plan that fits your situation.", image: "step-support", alt: "People working together around a table" },
+  { icon: Compass, title: "Find your way forward", body: "If staying isn't possible, get support for a safe move and a fresh start.", image: "step-forward", alt: "A tree-lined city street leading toward the skyline" },
+];
+const SERVICES = [
+  { icon: HandCoins, title: "Help with rent", body: "Find local assistance programs and explore a manageable payment plan.", href: "/resources", label: "Find resources" },
+  { icon: Scale, title: "Clarity on your rights", body: "Understand the process and when to connect with legal help.", href: "/rights", label: "Know your rights" },
+  { icon: Compass, title: "A path to stability", body: "Explore housing and practical support for your next chapter.", href: "/housing", label: "Explore housing" },
+];
+const METRICS = [
   { label: "Cases assisted", value: "1,284" },
   { label: "Evictions prevented", value: "412" },
   { label: "Connected to legal aid", value: "538" },
@@ -26,192 +24,58 @@ const IMPACT_METRICS = [
   { label: "Recovery plans created", value: "297" },
 ];
 
-const STEPS = [
-  {
-    icon: ClipboardList,
-    title: "Answer a few questions",
-    body: "One question at a time, in plain language. About 3 minutes. No account, no SSN.",
-  },
-  {
-    icon: Route,
-    title: "Get your personal plan",
-    body: "We figure out where your case stands and what matters most — today, before court, and this week.",
-  },
-  {
-    icon: HandCoins,
-    title: "Take action with local help",
-    body: "Matched Metro Atlanta programs, a payment plan you can keep, and a message to your landlord.",
-  },
-  {
-    icon: Compass,
-    title: "Never hit a dead end",
-    body: "If staying stops being realistic, your plan shifts to a safe move and a strong recovery.",
-  },
-];
-
 export default function LandingPage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50 via-white to-canvas">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-sage-100/70 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-brand-100/70 blur-3xl" aria-hidden />
-        <div className="container-page relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.15fr_1fr]">
-          <div className="animate-fade-up">
-            <Badge tone="green" icon={<MapPin className="h-3.5 w-3.5" />}>
-              Free for {SERVICE_REGION_NAME} renters
-            </Badge>
-            <h1 className="mt-5 text-balance text-[1.7rem] font-bold leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.15]">
-              Facing eviction can be overwhelming.{" "}
-              <span className="text-brand-700">
-                HomePath helps you understand your situation, find local help, and build a plan for what comes next.
-              </span>
-            </h1>
-            <p className="mt-5 max-w-xl text-lg text-ink-soft">
-              Whatever stage you&apos;re in, we answer one question: <strong className="text-ink">what can I still do next?</strong>
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <ButtonLink href="/intake" size="lg">
-                Build My Action Plan <ArrowRight className="h-5 w-5" aria-hidden />
-              </ButtonLink>
-              <ButtonLink href="/resources" size="lg" variant="outline">
-                <Search className="h-5 w-5" aria-hidden /> Find Local Resources
-              </ButtonLink>
-            </div>
-            <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-soft">
-              <li className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-sage-600" aria-hidden /> No account needed
-              </li>
-              <li className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-sage-600" aria-hidden /> No SSN or bank info
-              </li>
-              <li className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-sage-600" aria-hidden /> About 3 minutes
-              </li>
-            </ul>
+      <section className="relative isolate bg-[#2c1e40]" aria-labelledby="hero-heading">
+        <Image src="/images/atlanta-sunset-hero.jpg" alt="Atlanta skyline and snowy city streets beneath a soft sunset sky" fill priority sizes="100vw" className="object-cover object-[center_55%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#21152f]/95 via-[#3a2850]/75 to-[#3a2850]/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#21152f]/80 via-transparent to-[#21152f]/20" />
+        <div className="container-page relative pb-36 pt-32 sm:pb-40 sm:pt-40 lg:pt-44">
+          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[#dac9ee]"><MapPin className="h-4 w-4" aria-hidden /> Here for Metro Atlanta renters</p>
+          <h1 id="hero-heading" className="mt-6 max-w-3xl text-balance text-5xl font-medium leading-[1.08] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">Keep your home.<br /><span className="text-[#dfcff3]">Find your next step.</span></h1>
+          <p className="mt-6 max-w-lg text-base leading-7 text-slate-200 sm:text-lg">Free local help and a clear plan when rent gets hard.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <ButtonLink href="/intake" size="lg" className="!rounded-md !bg-[#756187] hover:!bg-[#635073]">Build my plan <ArrowRight className="h-4 w-4" aria-hidden /></ButtonLink>
+            <ButtonLink href="/resources" variant="outline" size="lg" className="!rounded-md !border-white/40 !bg-white/5 !text-white hover:!bg-white/15">Find local help</ButtonLink>
           </div>
-
-          {/* Plan preview */}
-          <div className="animate-fade-up [animation-delay:150ms]">
-            <Card className="relative shadow-lift">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-ink-muted">Example plan</p>
-                <Badge tone="coral">Legal help recommended</Badge>
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl bg-slate-50 p-3 text-center">
-                <div>
-                  <p className="text-xs text-ink-muted">Owed</p>
-                  <p className="text-lg font-semibold">$1,400</p>
-                </div>
-                <div>
-                  <p className="text-xs text-ink-muted">Have today</p>
-                  <p className="text-lg font-semibold">$500</p>
-                </div>
-                <div>
-                  <p className="text-xs text-ink-muted">Court in</p>
-                  <p className="flex items-center justify-center gap-1 text-lg font-semibold text-coral-600">
-                    <CalendarClock className="h-4 w-4" aria-hidden />7 days
-                  </p>
-                </div>
-              </div>
-              <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-ink-muted">Today</p>
-              <ul className="mt-2 space-y-2.5">
-                {[
-                  { icon: Scale, text: "Call Atlanta Legal Aid — court is in 7 days" },
-                  { icon: HandCoins, text: "Apply for Fulton County rental assistance" },
-                  { icon: HeartHandshake, text: "Send your landlord a payment plan" },
-                ].map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-start gap-3 rounded-xl border border-slate-200 p-3">
-                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
-                    <span className="text-sm font-medium">{text}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-sage-50 p-3 text-sm text-sage-800">
-                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-                Paycheck + assistance could close the $450 gap
-              </div>
-            </Card>
-          </div>
+          <p className="mt-6 flex items-center gap-2 text-xs text-slate-300"><ShieldCheck className="h-4 w-4" aria-hidden /> No account needed <span className="mx-1" aria-hidden>·</span> About 3 minutes</p>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="container-page py-16" aria-labelledby="how-heading">
-        <div className="max-w-2xl">
-          <h2 id="how-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
-            How HomePath works
-          </h2>
-          <p className="mt-2 text-ink-soft">
-            If staying is possible, we help you stay. If it isn&apos;t, we help you reduce the damage and land somewhere stable.
-          </p>
-        </div>
-        <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <li key={s.title}>
-              <Card className="h-full">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                    <s.icon className="h-5 w-5" aria-hidden />
-                  </span>
-                  <span className="text-sm font-semibold text-ink-muted">Step {i + 1}</span>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
-                <p className="mt-1.5 text-sm text-ink-soft">{s.body}</p>
-              </Card>
-            </li>
-          ))}
-        </ol>
+      <section className="container-page relative z-10 -mt-20" aria-label="Ways HomePath can help">
+        <div className="grid gap-4 md:grid-cols-3">{SERVICES.map(({ icon: Icon, ...service }) => (
+          <article key={service.href} className="flex flex-col items-center rounded-lg border border-slate-200/80 bg-white px-7 py-8 text-center shadow-lift">
+            <Icon className="h-9 w-9 text-[#8464b0]" strokeWidth={1.5} aria-hidden />
+            <h2 className="mt-5 text-xl font-semibold tracking-tight text-[#352548]">{service.title}</h2>
+            <p className="mt-3 flex-1 text-sm leading-6 text-ink-soft">{service.body}</p>
+            <ButtonLink href={service.href} size="sm" className="mt-6 !rounded-md !bg-[#8464b0] hover:!bg-[#705098]">{service.label} <ArrowRight className="h-3.5 w-3.5" aria-hidden /></ButtonLink>
+          </article>
+        ))}</div>
       </section>
 
-      {/* Impact */}
-      <section className="bg-white py-16" aria-labelledby="impact-heading">
-        <div className="container-page">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 id="impact-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Impact
-            </h2>
-            <DemoBadge label="Demo data — illustrative numbers" />
-          </div>
-          <dl className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
-            {IMPACT_METRICS.map((m) => (
-              <div key={m.label} className="rounded-2xl border border-slate-200 bg-canvas p-5">
-                <dt className="text-sm text-ink-muted">{m.label}</dt>
-                <dd className="mt-1 text-3xl font-bold tracking-tight text-brand-700">{m.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-3 text-xs text-ink-muted">These figures are simulated for demonstration and do not represent real outcomes.</p>
+      <section id="how-it-works" className="container-page scroll-mt-24 py-20" aria-labelledby="how-heading">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#8464b0]">A little clarity goes a long way</p>
+        <h2 id="how-heading" className="mt-3 text-center text-3xl font-semibold tracking-tight text-[#352548] sm:text-4xl">Four steps toward stability.</h2>
+        <p className="mx-auto mt-4 max-w-lg text-center text-sm leading-6 text-ink-soft">Start where you are. Your plan adapts as your situation changes.</p>
+        <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{STEPS.map(({ icon: Icon, ...step }, i) => (
+          <li key={step.image} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft">
+            <div className="relative aspect-[4/3]"><Image src={`/images/${step.image}.jpg`} alt={step.alt} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover" /><span className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-[#352548] text-sm font-semibold text-white">0{i + 1}</span></div>
+            <div className="p-5"><Icon className="h-5 w-5 text-[#8464b0]" aria-hidden /><h3 className="mt-3 text-lg font-semibold tracking-tight text-[#352548]">{step.title}</h3><p className="mt-2 text-sm leading-6 text-ink-soft">{step.body}</p></div>
+          </li>
+        ))}</ol>
+      </section>
+
+      <section className="bg-[#302044] py-16 sm:py-20" aria-labelledby="area-heading">
+        <div className="container-page grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-lg"><Image src="/images/atlanta-cityscape.jpg" alt="Downtown Atlanta and the SkyView Ferris wheel" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" /><span className="absolute bottom-4 left-4 flex items-center gap-2 rounded-md bg-[#2b1c3b]/90 px-4 py-2 text-xs text-white"><MapPin className="h-3.5 w-3.5" aria-hidden /> Metro Atlanta, Georgia</span></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c4b0e5]">Local help. Close to home.</p><h2 id="area-heading" className="mt-4 text-3xl font-medium tracking-tight text-white sm:text-4xl">Built for {SERVICE_REGION_NAME}.</h2><p className="mt-5 text-base leading-7 text-slate-300">Connect with {RESOURCES.length} listed programs across {SERVICE_COUNTIES.length} counties, from rental assistance and legal aid to housing and family support.</p><ul className="mt-6 flex flex-wrap gap-2">{SERVICE_COUNTIES.map(county => <li key={county.name} className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm text-violet-100">{county.name} County</li>)}</ul><ButtonLink href="/intake" className="mt-7 !rounded-md !bg-[#8464b0] hover:!bg-[#705098]">Check my county <ArrowRight className="h-4 w-4" aria-hidden /></ButtonLink><p className="mt-4 text-xs leading-5 text-slate-400">Resource listings and availability are demo data. Confirm details directly with each organization.</p></div>
         </div>
       </section>
 
-      {/* Service area */}
-      <section className="container-page py-16" aria-labelledby="area-heading">
-        <Card className="grid gap-8 bg-gradient-to-br from-white to-sage-50 md:grid-cols-[1fr_1.2fr] md:items-center">
-          <div>
-            <Badge tone="green" icon={<MapPin className="h-3.5 w-3.5" />}>
-              Service area
-            </Badge>
-            <h2 id="area-heading" className="mt-3 text-2xl font-bold tracking-tight">
-              Built for {SERVICE_REGION_NAME}
-            </h2>
-            <p className="mt-2 text-ink-soft">
-              HomePath currently covers {SERVICE_COUNTIES.length} counties with {RESOURCES.length} local programs — legal aid, rental and
-              utility assistance, shelter, housing, jobs, and family support.
-            </p>
-            <ButtonLink href="/intake" className="mt-5">
-              Check my county <ArrowRight className="h-4 w-4" aria-hidden />
-            </ButtonLink>
-          </div>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {SERVICE_COUNTIES.map((c) => (
-              <li key={c.name} className="rounded-xl border border-sage-200 bg-white px-4 py-3 text-center font-semibold text-sage-800 shadow-sm">
-                {c.name} County
-              </li>
-            ))}
-            <li className="rounded-xl border border-dashed border-slate-300 px-4 py-3 text-center text-sm text-ink-muted">More coming soon</li>
-          </ul>
-        </Card>
+      <section className="container-page py-16" aria-labelledby="impact-heading">
+        <div className="flex flex-wrap items-center justify-center gap-3"><h2 id="impact-heading" className="text-2xl font-semibold tracking-tight text-[#352548]">What support can make possible</h2><DemoBadge label="Illustrative demo data" /></div>
+        <dl className="mt-9 grid grid-cols-2 gap-6 text-center md:grid-cols-5">{METRICS.map(metric => <div key={metric.label}><dt className="text-sm text-ink-muted">{metric.label}</dt><dd className="mt-2 text-3xl font-semibold tracking-tight text-[#654887]">{metric.value}</dd></div>)}</dl><p className="mt-6 text-center text-xs text-ink-muted">Simulated for demonstration. These figures do not represent real outcomes.</p>
       </section>
     </>
   );

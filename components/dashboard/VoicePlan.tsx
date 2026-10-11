@@ -81,10 +81,10 @@ export function VoicePlan({ userCase, actions }: { userCase: UserCase; actions: 
   }, []);
 
   return (
-    <Card className="mt-6 border-brand-200 bg-brand-50/40">
+    <Card className="mt-6 border-violet-200 bg-violet-50/60">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold"><Volume2 className="h-5 w-5 text-brand-600" aria-hidden /> Listen to your plan</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-violet-950"><Volume2 className="h-5 w-5 text-violet-700" aria-hidden /> Listen to your plan</h2>
           <p className="mt-1 text-sm text-ink-soft">A calm voice walks you through your next steps. Powered by ElevenLabs.</p>
         </div>
         <div className="flex gap-2">

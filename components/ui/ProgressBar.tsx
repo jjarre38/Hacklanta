@@ -11,7 +11,7 @@ interface ProgressBarProps {
 const fills = {
   blue: "bg-brand-500",
   green: "bg-sage-500",
-  violet: "bg-dusk-500",
+  violet: "bg-violet-500",
 };
 
 export function ProgressBar({ value, max = 100, label, tone = "blue", className }: ProgressBarProps) {

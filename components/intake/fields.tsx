@@ -136,7 +136,7 @@ export function ChoiceGroup<T extends string | boolean>({
                   }}
                   className={clsx(
                     "flex min-h-[52px] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
-                    selected ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500" : "border-slate-300 bg-white hover:border-brand-300 hover:bg-slate-50",
+                    selected ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500" : "border-slate-300 bg-white hover:border-violet-300 hover:bg-slate-50",
                   )}
                 >
                   <span>
@@ -146,7 +146,7 @@ export function ChoiceGroup<T extends string | boolean>({
                   <span
                     className={clsx(
                       "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-                      selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300",
+                      selected ? "border-violet-600 bg-violet-600 text-white" : "border-slate-300",
                     )}
                   >
                     {selected && <Check className="h-4 w-4" aria-hidden />}

@@ -100,7 +100,7 @@ export function IntakeWizard() {
     <div className="mx-auto w-full max-w-2xl">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-brand-700">{step.group}</p>
+          <p className="text-sm font-semibold text-violet-800">{step.group}</p>
           <p className="text-sm text-ink-muted">
             Step {stepIndex + 1} of {INTAKE_STEPS.length}
           </p>
@@ -113,7 +113,7 @@ export function IntakeWizard() {
           <Sparkles className="h-4 w-4" aria-hidden /> Demo: Load Maria&apos;s Case
         </button>
       </div>
-      <ProgressBar value={stepIndex + 1} max={INTAKE_STEPS.length} label={`Progress: step ${stepIndex + 1} of ${INTAKE_STEPS.length}`} className="mb-6 [&>div:first-child]:sr-only" />
+      <ProgressBar tone="violet" value={stepIndex + 1} max={INTAKE_STEPS.length} label={`Progress: step ${stepIndex + 1} of ${INTAKE_STEPS.length}`} className="mb-6 [&>div:first-child]:sr-only" />
 
       <Card className="p-6 sm:p-8">
         <FormProvider {...form}>
@@ -148,7 +148,7 @@ export function IntakeWizard() {
               <Button variant="ghost" onClick={back} disabled={stepIndex === 0 || submitting}>
                 <ArrowLeft className="h-4 w-4" aria-hidden /> Back
               </Button>
-              <Button type="submit" size="lg" disabled={submitting || blockedOutOfArea}>
+              <Button type="submit" size="lg" className="!bg-[#B9A3E3] hover:!bg-[#7353BA]" disabled={submitting || blockedOutOfArea}>
                 {submitting ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> Building your plan…
