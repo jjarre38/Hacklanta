@@ -111,7 +111,7 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
 
       <ul className="mt-5 space-y-3">
         {plan.installments.map((inst, i) => (
-          <li key={i} className="grid grid-cols-[1fr_auto] gap-3 rounded-xl border border-slate-200 p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end">
+          <li key={i} className="relative grid grid-cols-2 gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end sm:gap-3">
             <div className="col-span-2 sm:col-span-1">
               <label className="text-xs font-medium text-ink-muted" htmlFor={`inst-label-${i}`}>
                 Payment
@@ -153,10 +153,11 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
                 onChange={(e) => e.target.value && updateInstallment(i, { dueDate: e.target.value })}
               />
             </div>
+            {/* On phones the delete button sits in the row's top-right corner instead of taking its own line. */}
             <button
               type="button"
               onClick={() => removeInstallment(i)}
-              className="flex h-11 w-11 items-center justify-center self-end rounded-lg text-ink-muted hover:bg-slate-100 hover:text-coral-600"
+              className="absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-slate-100 hover:text-coral-600 sm:static sm:h-11 sm:w-11 sm:self-end"
               aria-label={`Remove ${inst.label}`}
             >
               <Trash2 className="h-4 w-4" aria-hidden />

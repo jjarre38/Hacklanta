@@ -20,7 +20,7 @@ interface ResourceFiltersProps {
 export function ResourceFilters({ value, onChange, categories }: ResourceFiltersProps) {
   const options = categories ?? (Object.keys(CATEGORY_LABELS) as ResourceCategory[]);
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-soft sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-soft sm:grid-cols-[1fr_1fr_auto] sm:items-end sm:p-4">
       <div>
         <label htmlFor="filter-category" className="field-label">
           Type of help
@@ -52,7 +52,7 @@ export function ResourceFilters({ value, onChange, categories }: ResourceFilters
           ))}
         </select>
       </div>
-      <label className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-slate-300 px-4 py-2.5">
+      <label className="col-span-2 flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-slate-300 px-4 py-2 sm:col-span-1 sm:min-h-[48px] sm:py-2.5">
         <input
           type="checkbox"
           className="h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"

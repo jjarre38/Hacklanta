@@ -61,7 +61,7 @@ export default function LandingPage() {
             <Badge tone="green" icon={<MapPin className="h-3.5 w-3.5" />}>
               Free for {SERVICE_REGION_NAME} renters
             </Badge>
-            <h1 className="mt-5 text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.15]">
+            <h1 className="mt-5 text-balance text-[1.7rem] font-bold leading-tight tracking-tight text-ink sm:text-4xl lg:text-[2.75rem] lg:leading-[1.15]">
               Facing eviction can be overwhelming.{" "}
               <span className="text-brand-700">
                 HomePath helps you understand your situation, find local help, and build a plan for what comes next.

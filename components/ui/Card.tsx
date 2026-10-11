@@ -8,7 +8,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ className, padded = true, ...props }: CardProps) {
   return (
     <div
-      className={clsx("rounded-2xl border border-slate-200 bg-white shadow-soft", padded && "p-5 sm:p-6", className)}
+      className={clsx("rounded-2xl border border-slate-200 bg-white shadow-soft", padded && "p-4 sm:p-6", className)}
       {...props}
     />
   );

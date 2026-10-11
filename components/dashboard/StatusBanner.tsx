@@ -13,7 +13,8 @@ const THEMES: Record<CaseStatus, { bg: string; badge: string; accent: string }> 
   TRANSITION_RECOVERY: { bg: "from-dusk-600 to-[#3d3180]", badge: "bg-white/15 text-white ring-white/30", accent: "text-dusk-100" },
 };
 
-export function StatusBanner({ userCase, justChanged }: { userCase: UserCase; justChanged: boolean }) {
+/** `compact` is the mobile layout: tighter spacing and smaller type so the plan starts higher on the screen. */
+export function StatusBanner({ userCase, justChanged, compact = false }: { userCase: UserCase; justChanged: boolean; compact?: boolean }) {
   const { reasons, assumptions } = classifyCase(userCase);
   const meta = STATUS_META[userCase.caseStatus];
   const theme = THEMES[userCase.caseStatus];
@@ -36,20 +37,22 @@ export function StatusBanner({ userCase, justChanged }: { userCase: UserCase; ju
     <section
       key={userCase.caseStatus}
       className={clsx(
-        "relative overflow-hidden rounded-2xl bg-gradient-to-br p-6 text-white shadow-lift transition-colors duration-700 sm:p-8",
+        "relative overflow-hidden rounded-2xl bg-gradient-to-br text-white shadow-lift transition-colors duration-700",
+        compact ? "p-4" : "p-6 sm:p-8",
         theme.bg,
         justChanged && "animate-status-shift",
       )}
       aria-live="polite"
     >
       <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" aria-hidden />
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+      <div className={clsx("relative flex flex-col lg:flex-row lg:items-start lg:justify-between", compact ? "gap-3" : "gap-6")}>
         <div className="max-w-xl">
-          <p className={clsx("text-sm font-medium", theme.accent)}>Your case status</p>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className={clsx("text-sm font-medium", theme.accent, compact && "sr-only")}>Your case status</p>
+          <div className={clsx("flex flex-wrap items-center gap-3", !compact && "mt-2")}>
             <span
               className={clsx(
-                "inline-flex items-center rounded-full px-4 py-1.5 text-lg font-bold ring-1 ring-inset",
+                "inline-flex items-center rounded-full font-bold ring-1 ring-inset",
+                compact ? "px-3 py-1 text-base" : "px-4 py-1.5 text-lg",
                 theme.badge,
                 justChanged && userCase.caseStatus === "TRANSITION_RECOVERY" && "animate-pulse-ring",
               )}
@@ -57,8 +60,8 @@ export function StatusBanner({ userCase, justChanged }: { userCase: UserCase; ju
               {meta.label}
             </span>
           </div>
-          <p className="mt-3 text-base text-white/90">{meta.description}</p>
-          <details className="group mt-3 text-sm text-white/85">
+          <p className={clsx("text-white/90", compact ? "mt-2 text-sm" : "mt-3 text-base")}>{meta.description}</p>
+          <details className={clsx("group text-sm text-white/85", compact ? "mt-2" : "mt-3")}>
             <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-medium underline-offset-2 hover:underline">
               <Info className="h-4 w-4" aria-hidden /> Why this status?
             </summary>
@@ -74,14 +77,14 @@ export function StatusBanner({ userCase, justChanged }: { userCase: UserCase; ju
             </ul>
           </details>
         </div>
-        <dl className="grid grid-cols-2 gap-3 lg:min-w-[420px]">
+        <dl className={clsx("grid grid-cols-2 lg:min-w-[420px]", compact ? "gap-2" : "gap-3")}>
           {stats.map((s) => (
-            <div key={s.label} className="rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <div key={s.label} className={clsx("rounded-xl bg-white/10 ring-1 ring-inset ring-white/15", compact ? "px-3 py-2" : "p-3")}>
               <dt className="flex items-center gap-1.5 text-xs font-medium text-white/75">
                 <s.icon className="h-3.5 w-3.5" aria-hidden /> {s.label}
               </dt>
-              <dd className="mt-1 text-lg font-semibold leading-tight">{s.value}</dd>
-              {s.sub && <dd className="text-sm font-medium text-white/85">{s.sub}</dd>}
+              <dd className={clsx("font-semibold leading-tight", compact ? "mt-0.5 text-base" : "mt-1 text-lg")}>{s.value}</dd>
+              {s.sub && <dd className={clsx("font-medium text-white/85", compact ? "text-xs" : "text-sm")}>{s.sub}</dd>}
             </div>
           ))}
         </dl>

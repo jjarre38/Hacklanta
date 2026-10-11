@@ -52,7 +52,7 @@ export function ResourcesClient() {
           : "Browse legal aid, rental and utility help, shelter, housing, jobs, and family support. Build a plan to get personalized matches."}
       </p>
 
-      <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 sm:text-sm">
         <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
         <p>
           This is a demo dataset. Availability statuses are simulated and contact details may have changed — always confirm with the organization. {MAY_QUALIFY}

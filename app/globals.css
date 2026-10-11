@@ -22,6 +22,10 @@
   .container-wide {
     @apply mx-auto w-full max-w-screen-2xl px-4 sm:px-8 lg:px-12;
   }
+  /* Keep page content (and the footer) clear of the mobile dashboard's fixed bottom bar. */
+  body:has([data-bottom-nav]) {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  }
   .field-label {
     @apply mb-1.5 block text-sm font-medium text-ink;
   }
