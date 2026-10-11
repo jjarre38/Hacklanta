@@ -14,6 +14,7 @@ import { mariaIntake } from "@/lib/demo/mariaSeed";
 import { makeId } from "@/lib/format";
 import { LEGAL_DISCLAIMER } from "@/lib/copy";
 import { StatusBanner } from "@/components/dashboard/StatusBanner";
+import { VoicePlan } from "@/components/dashboard/VoicePlan";
 import { ActionPlan } from "@/components/dashboard/ActionPlan";
 import { CaseTimeline } from "@/components/dashboard/CaseTimeline";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
@@ -126,6 +127,7 @@ export function DashboardClient() {
       {transition && <TransitionNotice transition={transition} onDismiss={() => setTransition(null)} />}
 
       <StatusBanner userCase={userCase} justChanged={justChanged} />
+      <VoicePlan userCase={userCase} actions={actions} />
 
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-12">
         <div className="min-w-0 space-y-8">

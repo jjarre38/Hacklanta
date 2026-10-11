@@ -31,6 +31,9 @@ Other scripts:
 | Variable | Required | Used for |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | For AI features | Drafting landlord messages and extracting data from uploaded documents. Without it, those two features show a "not configured" message. Everything else still works. |
+| `ELEVENLABS_API_KEY` | For voice narration | Server-only key for the dashboard's Listen to your plan feature. Requires text-to-speech permission and available credits. |
+| `ELEVENLABS_VOICE_ID` | Optional | Voice ID; defaults to George (`JBFqnCBsd6RMkjVDRZzb`). |
+| `ELEVENLABS_MODEL_ID` | Optional | Speech model; defaults to `eleven_multilingual_v2`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase browser key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional | Server-side writes (cases, documents, storage) |
@@ -62,6 +65,10 @@ The case API then upserts cases, events, and action items keyed by the guest ses
 7. Open **Find affordable housing** (`/housing`) and **Rebuild income** (`/employment`). Finish on **Know Your Rights** (`/rights`), where cards matching Maria's stage are highlighted.
 
 Use **Reset Maria** in Demo Controls to start over.
+
+### Voice demo
+
+Set `ELEVENLABS_API_KEY` in `.env.local` and restart the development server (or set it in your hosting environment and redeploy). On Maria's dashboard, click **Read my plan**. The player supports pause, seeking, and replay. Audio is generated only when the button is clicked. The narrated summary is sent to ElevenLabs; generated audio stays in browser memory and is discarded when the plan changes or the component unmounts. Browser autoplay restrictions may require pressing play. No extra SDK is required. API reference: https://elevenlabs.io/docs/api-reference/text-to-speech/convert.
 
 ## Architecture
 
