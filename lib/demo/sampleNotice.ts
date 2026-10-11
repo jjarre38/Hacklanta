@@ -1,4 +1,5 @@
-import { addDays, formatDate } from "@/lib/format";
+import type { ExtractedDocument } from "@/types";
+import { addDays, formatDate, toISODate } from "@/lib/format";
 
 // A fictional dispossessory summons used for the "Demo Document" flow.
 // Names, case number, and address are invented. Dates are relative to today.
@@ -34,4 +35,11 @@ Fulton County Justice Center Tower, 185 Central Ave SW, Atlanta, GA 30303.
 
 This ____ day of __________, 20__.
 Clerk / Deputy Clerk, Magistrate Court of Fulton County`;
+}
+
+/** Labeled seed data, not the result of an AI extraction. */
+export function sampleExtractedDocument(now: Date = new Date()): ExtractedDocument {
+  return { landlordName: "Westview Commons Apartments, LLC", tenantName: "Maria Alvarez", amountClaimed: 1400,
+    filingDate: toISODate(addDays(now, -6)), courtDate: toISODate(addDays(now, 7)), caseNumber: "26ED184732", county: "Fulton",
+    deadlines: ["Sample states: answer within seven days of service. No service date is supplied."], confidence: "HIGH" };
 }

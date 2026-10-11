@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { UserCase } from "@/types";
+import { userCaseSchema } from "@/lib/validation/case";
+import { boundedJson, requestError, requestStatus } from "@/lib/services/requestSafety";
 import { intakeSchema } from "@/lib/intake/schema";
 import { createCaseFromIntake, reclassify } from "@/lib/services/caseService";
 import { persistCase } from "@/lib/services/casePersistence";
@@ -14,9 +15,11 @@ const postBody = z.object({
 
 /** POST: create a case from intake answers, classify it, and return it. */
 export async function POST(req: Request) {
-  const parsed = postBody.safeParse(await req.json().catch(() => null));
+  let body: unknown;
+  try { body = await boundedJson(req); } catch (err) { return NextResponse.json(requestError(err), { status: requestStatus(err) }); }
+  const parsed = postBody.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid intake data", issues: parsed.error.issues }, { status: 400 });
+    return NextResponse.json({ error: "Invalid intake data" }, { status: 400 });
   }
   const now = new Date();
   const userCase = createCaseFromIntake(parsed.data.intake, now);
@@ -26,21 +29,24 @@ export async function POST(req: Request) {
     classification: classifyCase(userCase, now),
     actionPlan: generateActionPlan(userCase, now),
     persisted,
+    storageMode: "BROWSER_ONLY",
   });
 }
 
 const putBody = z.object({
   sessionId: z.string().min(1).max(100),
-  case: z.custom<UserCase>((v) => typeof v === "object" && v !== null && "id" in v && "evictionStage" in v),
+  case: userCaseSchema,
 });
 
 /** PUT: sync an updated case (re-classified server-side) to Supabase if configured. */
 export async function PUT(req: Request) {
-  const parsed = putBody.safeParse(await req.json().catch(() => null));
+  let body: unknown;
+  try { body = await boundedJson(req); } catch (err) { return NextResponse.json(requestError(err), { status: requestStatus(err) }); }
+  const parsed = putBody.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid case data" }, { status: 400 });
   }
   const userCase = reclassify(parsed.data.case);
   const persisted = await persistCase(parsed.data.sessionId, userCase);
-  return NextResponse.json({ case: userCase, persisted });
+  return NextResponse.json({ case: userCase, persisted, storageMode: "BROWSER_ONLY" });
 }

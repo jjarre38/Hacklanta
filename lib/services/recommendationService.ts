@@ -7,7 +7,7 @@ import { RESOURCES } from "@/lib/data/resources";
 
 // Deterministic action-plan generator. Every item carries a `reason` that
 // explains exactly which facts about the case produced it. IDs are stable so
-// completion state survives re-classification.
+// completion state survives ordinary refreshes. Reclassification requires fresh review.
 
 type Draft = Omit<ActionItem, "completed">;
 
@@ -21,7 +21,12 @@ export const URGENCY_LABELS: Record<ActionUrgency, { title: string; subtitle: st
 };
 
 export function generateActionPlan(c: UserCase, now: Date = new Date()): ActionItem[] {
-  const items = c.caseStatus === "TRANSITION_RECOVERY" ? recoveryActions(c, now) : stayActions(c, now);
+  const recovery = c.caseStatus === "TRANSITION_RECOVERY";
+  const items = recovery ? recoveryActions(c, now) : stayActions(c, now);
+  if (recovery) {
+    const legalIds = new Set(["confirm-case-stage", "file-answer", "contact-legal-aid", "follow-up-legal-aid", "judgment-options", "prepare-hearing", "confirm-court-date"]);
+    items.unshift(...stayActions(c, now).filter(i => legalIds.has(i.id)));
+  }
   items.push({
     id: "keep-records",
     title: "Keep copies of everything",
@@ -46,9 +51,12 @@ function stayActions(c: UserCase, now: Date): Draft[] {
   const gap = calculateFinancialGap(c, RESOURCES, now);
   const county = getCounty(c.county);
   const courtPhrase =
-    daysToCourt === null ? "" : daysToCourt === 0 ? "Your court date is today. " : `Your court date is in ${daysToCourt} days (${formatDate(c.courtDate)}). `;
+    daysToCourt === null ? "" : daysToCourt < 0 ? "Your recorded court date has passed; confirm the outcome. " : daysToCourt === 0 ? "Your court date is today. " : `Your court date is in ${daysToCourt} days (${formatDate(c.courtDate)}). `;
 
   // ---- Legal
+  if ((stage === "COURT_DATE_SCHEDULED" && daysToCourt === null) || (daysToCourt !== null && daysToCourt < 0 && filed)) {
+    items.push({ id: "confirm-court-date", title: "Confirm your court date and case outcome", description: "Check the court record or call the clerk today. Ask legal aid about any deadline that may already be running.", reason: "The hearing date is missing, invalid, or has passed without a confirmed outcome.", urgency: "TODAY", href: county?.magistrateCourtUrl });
+  }
   if (stage === "UNSURE") {
     items.push({
       id: "confirm-case-stage",
@@ -87,7 +95,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
         title: "Follow up with legal aid",
         description: "Confirm whether they're representing you and what they need from you before the hearing.",
         reason: "You've contacted legal aid. Following up keeps your case from slipping through the cracks.",
-        urgency: courtUpcoming ? "BEFORE_COURT" : "THIS_WEEK",
+        urgency: daysToCourt === 0 || stage === "JUDGMENT_ENTERED" || daysToCourt === null || (daysToCourt !== null && daysToCourt < 0) ? "TODAY" : courtUpcoming ? "BEFORE_COURT" : "THIS_WEEK",
       });
     }
   }
@@ -107,14 +115,14 @@ function stayActions(c: UserCase, now: Date): Draft[] {
       title: "Gather documents for your hearing",
       description: "Bring your lease, rent receipts, notices, photos of any repair problems, texts/emails with your landlord, and proof of any assistance applications.",
       reason: `${courtPhrase}Judges decide based on what's in front of them, so bring proof.`,
-      urgency: "BEFORE_COURT",
+      urgency: daysToCourt === 0 ? "TODAY" : "BEFORE_COURT",
     });
     items.push({
       id: "attend-hearing",
       title: "Go to your hearing — arrive early",
       description: `Be at court on ${formatDate(c.courtDate)} at least 30 minutes early. Bring your payment plan and any assistance approval.`,
-      reason: "If you don't attend, the landlord will usually win automatically.",
-      urgency: "BEFORE_COURT",
+      reason: "Missing the hearing risks an adverse judgment; confirm attendance instructions with the court.",
+      urgency: daysToCourt === 0 ? "TODAY" : "BEFORE_COURT",
       href: "/rights#hearing",
     });
   }
@@ -122,8 +130,8 @@ function stayActions(c: UserCase, now: Date): Draft[] {
   // ---- Money: rental assistance
   const assistanceUrgency: ActionUrgency = urgent ? "TODAY" : "THIS_WEEK";
   const gapText =
-    gap.gapBeforeAssistance > 0
-      ? `After what you have today${gap.nextPaycheckContribution ? " and your next paycheck" : ""}, you're about ${formatMoney(gap.gapBeforeAssistance)} short.`
+    gap.confirmedRemainingGap > 0
+      ? `After your reported, allocated housing funds${gap.nextPaycheckContribution ? " and your next paycheck" : ""}, you're about ${formatMoney(gap.confirmedRemainingGap)} short.`
       : "You may be able to cover what you owe with your own funds.";
   switch (c.assistanceStatus ?? (c.appliedForAssistance ? "WAITLISTED" : "NOT_ATTEMPTED")) {
     case "NOT_ATTEMPTED":
@@ -138,6 +146,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
         });
       }
       break;
+    case "PENDING":
     case "WAITLISTED":
       items.push({
         id: "assistance-follow-up",
@@ -152,7 +161,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
       items.push({
         id: "assistance-other-programs",
         title: "Try other assistance programs",
-        description: "A denial from one program doesn't mean others will say no. Ask why you were denied, then apply to charities like The Salvation Army or St. Vincent de Paul.",
+        description: "A denial from one program doesn't mean others will say no. Ask why you were denied, then apply to charities such as St. Vincent de Paul, and ask 211 about other current referrals.",
         reason: `Your application was denied. ${gapText}`,
         urgency: assistanceUrgency,
         href: "/resources?category=RENTAL_ASSISTANCE",
@@ -163,7 +172,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
         id: "share-approval",
         title: "Send your approval to your landlord",
         description: "Give your landlord (and the court, if a case is filed) a copy of your assistance approval letter.",
-        reason: "Your assistance was approved. Landlords often accept payment or pause the case when funds are confirmed.",
+        reason: "Your assistance was approved. Confirm the amount, payment timing, and how it affects your case. An approval does not itself pause court deadlines.",
         urgency: "TODAY",
       });
       break;
@@ -200,7 +209,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
     items.push({
       id: "landlord-alternative",
       title: "Offer your landlord a different option",
-      description: "Ask if they'd accept full payment from assistance programs, a larger first payment, or a shorter plan. Keep it in writing.",
+      description: "Ask whether they would consider another arrangement within your safe budget or verified assistance funds. Keep it in writing and keep court deadlines.",
       reason: "Your landlord rejected a payment plan. Some landlords accept assistance funds even after declining a plan.",
       urgency: urgent ? "TODAY" : "THIS_WEEK",
       href: "#payment-plan",
@@ -222,7 +231,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
     items.push({
       id: "file-unemployment",
       title: "File for unemployment benefits",
-      description: "Apply with the Georgia Department of Labor as soon as possible — benefits are not retroactive to before you apply.",
+      description: "Contact the Georgia Department of Labor promptly to check eligibility, filing timing, and required work history.",
       reason: c.monthlyIncome ? "You're currently unemployed." : "You reported a loss of income and $0 current income.",
       urgency: "THIS_WEEK",
       href: "/employment",
@@ -243,7 +252,7 @@ function stayActions(c: UserCase, now: Date): Draft[] {
       id: "family-supports",
       title: "Apply for family supports",
       description: "Childcare subsidies (CAPS), WIC, and SNAP for your children can ease monthly costs.",
-      reason: "You have children in your household, and these programs prioritize families.",
+      reason: "You have children in your household; age, income, and other program rules still need to be checked.",
       urgency: "ONGOING",
       href: "/resources?category=CHILDCARE_FAMILY",
     });
@@ -251,8 +260,8 @@ function stayActions(c: UserCase, now: Date): Draft[] {
   items.push({
     id: "call-211",
     title: "Call 2-1-1 for programs open right now",
-    description: "United Way's 2-1-1 line tracks which rent, utility, and food programs currently have funding.",
-    reason: "Program funding changes week to week; 2-1-1 has the most current list.",
+    description: "Ask United Way 2-1-1 for rent, utility, and food referrals, then confirm current intake directly with each provider.",
+    reason: "Program funding changes; a referral is a starting point, not confirmation of funding.",
     urgency: "THIS_WEEK",
   });
 
@@ -305,8 +314,8 @@ function recoveryActions(c: UserCase, now: Date): Draft[] {
       id: "attend-hearing-recovery",
       title: "Still go to your court date",
       description: `Even if you plan to move, attend on ${formatDate(c.courtDate)}. You may be able to ask for more time to move.`,
-      reason: "Missing court usually means the landlord wins automatically and on their timeline.",
-      urgency: "BEFORE_COURT",
+      reason: "Missing court risks an adverse judgment even while you plan a move.",
+      urgency: daysToCourt === 0 ? "TODAY" : "BEFORE_COURT",
       href: "/rights#hearing",
     });
   }
@@ -343,7 +352,7 @@ function recoveryActions(c: UserCase, now: Date): Draft[] {
   items.push({
     id: "employment-recovery",
     title: "Strengthen your income",
-    description: "Free career centers offer job search help, hiring events, and paid short-term training.",
+    description: "Career centers offer job-search support and training referrals. Ask about costs, eligibility, and any paid opportunities.",
     reason:
       barrier === "INCOME_TOO_LOW"
         ? "You said income is the hardest part."
@@ -356,7 +365,7 @@ function recoveryActions(c: UserCase, now: Date): Draft[] {
   items.push({
     id: "benefits-recovery",
     title: "Lock in benefits during the transition",
-    description: "SNAP, Medicaid, and food pantries reduce costs while you move. Update your address with each program.",
+    description: "SNAP, Medicaid, and food assistance may reduce costs if you qualify. Update your address with each program.",
     reason: "Benefits keep basics covered while your housing changes.",
     urgency: "ONGOING",
     href: "/resources?category=PUBLIC_BENEFITS",
@@ -369,7 +378,7 @@ function recoveryActions(c: UserCase, now: Date): Draft[] {
       reason:
         barrier === "CHILDCARE_OR_FAMILY"
           ? "You said childcare and family needs are the hardest part."
-          : "You have children, and federal law protects their school stability during housing changes.",
+          : "You have children. Ask the school liaison whether your living situation qualifies for McKinney-Vento protections and school-stability support.",
       urgency: barrier === "CHILDCARE_OR_FAMILY" ? "TODAY" : "THIS_WEEK",
       href: "/resources?category=CHILDCARE_FAMILY",
     });

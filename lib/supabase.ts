@@ -21,9 +21,4 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
   return browserClient;
 }
 
-/** Server-only client using the service role key. Never import into client components. */
-export function getSupabaseServerClient(): SupabaseClient | null {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey, { auth: { persistSession: false } });
-}
+// Privileged access is isolated in lib/supabaseServer.ts and is unused by guest APIs.

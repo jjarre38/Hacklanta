@@ -32,7 +32,7 @@ export type ResourceCategory =
 
 export type ResourceStatus = "OPEN" | "WAITLIST" | "FUNDS_LIMITED" | "CLOSED" | "UNKNOWN";
 
-export type AssistanceStatus = "APPROVED" | "DENIED" | "WAITLISTED" | "NOT_ATTEMPTED";
+export type AssistanceStatus = "APPROVED" | "DENIED" | "WAITLISTED" | "NOT_ATTEMPTED" | "PENDING";
 
 export type EmploymentStatus =
   | "EMPLOYED_FULL_TIME"
@@ -66,11 +66,16 @@ export interface Resource {
   applicationMethod: string;
   status: ResourceStatus;
   lastVerified: string; // ISO date
-  /** Demo-only estimate of typical assistance amount, used by the combination engine. */
+  /** Legacy demo estimate; ignored by the financial engine. */
   typicalAmount?: number;
   /** Eligibility hints used by the matcher. */
   servesFamiliesWithChildren?: boolean;
   requiresEvictionFiling?: boolean;
+  sourceUrl?: string;
+  verificationNotes?: string;
+  /** Published restrictions only; never infer a restriction from a service hint. */
+  restrictionSourceUrl?: string;
+  familiesOnly?: boolean;
 }
 
 export interface CaseEvent {
@@ -96,6 +101,17 @@ export interface UserCase {
   monthlyIncome: number;
   nextPaycheckAmount?: number;
   nextPaycheckDate?: string;
+  /** Explicit allocation, not the entire paycheck. */
+  nextPaycheckHousingAllocation?: number;
+  maxAffordableToday?: number;
+  essentialReserveToday?: number;
+  maxAffordablePerPaycheck?: number;
+  essentialReservePerPaycheck?: number;
+  payIntervalDays?: number;
+  approvedAssistanceAmount?: number;
+  approvedAssistanceAvailableDate?: string;
+  approvedAssistancePurpose?: "STAY" | "MOVE";
+  demoScenario?: { simulated: true; immediateAssistanceUnavailable: boolean; label: string };
   // Household
   householdSize: number;
   hasChildren: boolean;
@@ -153,6 +169,10 @@ export interface PaymentPlan {
   availableToday: number;
   installments: PaymentInstallment[];
   proposalText?: string; // AI-drafted landlord message
+  unallocatedBalance: number;
+  feasible: boolean;
+  affordability: "ILLUSTRATIVE" | "USER_CONSTRAINED" | "NOT_AFFORDABLE";
+  assumptions: string[];
 }
 
 export interface ExtractedDocument {
@@ -172,6 +192,9 @@ export interface ResourceMatch {
   score: number;
   /** Plain-language reasons this resource was matched. */
   reasons: string[];
+  eligibility: "POTENTIALLY_RELEVANT" | "UNKNOWN";
+  availability: ResourceStatus;
+  constraintsEvaluated: string[];
 }
 
 export interface FundingSource {
@@ -184,7 +207,7 @@ export interface FundingSource {
 export interface FinancialGap {
   /** STAY: closing back rent. MOVE: covering move-in costs in recovery mode. */
   mode: "STAY" | "MOVE";
-  /** Total needed: back rent (STAY) or estimated move-in costs (MOVE). */
+  /** Total reported debt (STAY) or illustrative move budget (MOVE), never a legal payoff quote. */
   amountOwed: number;
   availableToday: number;
   nextPaycheckContribution: number;
@@ -194,6 +217,15 @@ export interface FinancialGap {
   remainingGap: number;
   /** Notes on assumptions the engine made. */
   assumptions: string[];
+  confirmedHousingFunds: number;
+  confirmedAssistance: number;
+  confirmedRemainingGap: number;
+  potentialSupport: {
+    resourceId: string; name: string; status: ResourceStatus; amount: null;
+    eligibility: ResourceMatch["eligibility"]; reasons: string[];
+  }[];
+  obligationIsEstimate: boolean;
+  outstandingRentDebt: number;
 }
 
 export type CaseUpdateType =

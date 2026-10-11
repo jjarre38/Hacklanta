@@ -1,22 +1,8 @@
+import { allocatedPaycheck, housingCash } from "./housingFunds";
 import type { CaseStatus, EvictionStage, UserCase } from "@/types";
-import { daysUntil } from "@/lib/format";
+import { daysUntil, isISODate } from "@/lib/format";
 
-// Deterministic case classification. No AI involved.
-//
-// Rules are evaluated from most to least specific; the first match wins:
-//
-// 1. TRANSITION_RECOVERY — staying is no longer realistic:
-//    a. the user explicitly says staying is not realistic, or has found new housing
-//    b. judgment entered AND no assistance is available (assistance denied or
-//       landlord rejected a payment plan)
-//    c. landlord rejected a payment plan AND rental assistance was denied AND
-//       the case has reached the court-date stage or later
-// 2. LEGAL_HELP_RECOMMENDED — the legal situation needs a professional:
-//    court date within 7 days, judgment entered, or an ambiguous legal
-//    situation (stage unsure, or a court date that has passed without a judgment)
-// 3. URGENT_INTERVENTION — eviction filed, court date scheduled, or a court
-//    date within 14 days
-// 4. PREVENTION — behind on rent or holding a notice, no filing, no imminent deadline
+// Deterministic classification; recovery priority never predicts a legal outcome.
 
 export const STAGE_ORDER: Record<EvictionStage, number> = {
   UNSURE: -1,
@@ -29,19 +15,21 @@ export const STAGE_ORDER: Record<EvictionStage, number> = {
 
 export interface Classification {
   status: CaseStatus;
+  legalUrgency?: "IMMEDIATE" | "SOON" | "VERIFY" | "ROUTINE";
+  preservation?: PreservationEvaluation;
   /** Plain-language reasons for the chosen status. */
   reasons: string[];
   /** Assumptions made because data was missing or ambiguous. */
   assumptions: string[];
 }
 
-/** A filed case with a known court date is treated as "court date scheduled". */
+/** A valid reported hearing date is more specific than an earlier/unknown stage. */
 export function effectiveStage(c: Pick<UserCase, "evictionStage" | "courtDate">): EvictionStage {
-  if (c.evictionStage === "EVICTION_FILED" && c.courtDate) return "COURT_DATE_SCHEDULED";
+  if (c.evictionStage !== "JUDGMENT_ENTERED" && c.courtDate && isISODate(c.courtDate)) return "COURT_DATE_SCHEDULED";
   return c.evictionStage;
 }
 
-export function classifyCase(c: UserCase, now: Date = new Date()): Classification {
+function classifyStatus(c: UserCase, now: Date): Classification {
   const assumptions: string[] = [];
   const stage = effectiveStage(c);
   const stageRank = STAGE_ORDER[stage];
@@ -61,27 +49,8 @@ export function classifyCase(c: UserCase, now: Date = new Date()): Classificatio
   if (c.newHousingFound) {
     return { status: "TRANSITION_RECOVERY", reasons: ["You found new housing — the focus now is a stable move."], assumptions };
   }
-  const assistanceDenied = c.assistanceStatus === "DENIED";
-  if (stage === "JUDGMENT_ENTERED" && (assistanceDenied || c.paymentPlanRejected)) {
-    return {
-      status: "TRANSITION_RECOVERY",
-      reasons: [
-        "A judgment has been entered in your case.",
-        assistanceDenied ? "Rental assistance was denied." : "Your landlord rejected a payment plan.",
-      ],
-      assumptions,
-    };
-  }
-  if (c.paymentPlanRejected && assistanceDenied && stageRank >= STAGE_ORDER.COURT_DATE_SCHEDULED) {
-    return {
-      status: "TRANSITION_RECOVERY",
-      reasons: [
-        "Your landlord rejected a payment plan.",
-        "Rental assistance isn't available right now.",
-        "Your case has already reached the court stage.",
-      ],
-      assumptions,
-    };
+  if (evaluatePreservation(c, now).recoveryPriority) {
+    return { status: "TRANSITION_RECOVERY", reasons: evaluatePreservation(c, now).reasons, assumptions };
   }
 
   // 2. LEGAL_HELP_RECOMMENDED
@@ -165,3 +134,37 @@ export const STATUS_META: Record<CaseStatus, { label: string; short: string; ton
     description: "Staying may not be possible — so the plan now is a safe, stable next home and a strong recovery.",
   },
 };
+
+export interface PreservationEvaluation {
+  recoveryPriority: boolean;
+  simulated: boolean;
+  reasons: string[];
+  paths: { id: "PAYMENT_ARRANGEMENT" | "ASSISTANCE" | "OWN_FUNDS" | "LEGAL_REVIEW"; state: "UNCERTAIN" | "ATTEMPTED" | "DECLINED" | "UNAVAILABLE" | "CONFIRMED"; reason: string }[];
+}
+
+export function evaluatePreservation(c: UserCase, now: Date = new Date()): PreservationEvaluation {
+  const simulated = c.demoScenario?.simulated === true && c.demoScenario.immediateAssistanceUnavailable;
+  const selfFunds = housingCash(c) + allocatedPaycheck(c, "STAY", now);
+  const simulationTransition = simulated && c.paymentPlanRejected && selfFunds < c.amountOwed;
+  const recoveryPriority = Boolean(c.stayingNotRealistic || c.newHousingFound || simulationTransition);
+  const reasons = c.stayingNotRealistic ? ["You reported that staying is unrealistic; transition support and legal guidance can proceed together."]
+    : c.newHousingFound ? ["You reported new housing; prioritize a stable move and remaining court obligations."]
+    : simulationTransition ? ["SIMULATION: the payment arrangement was declined, modeled immediate assistance is unavailable, and reported, timely allocated housing funds do not cover the debt. Prioritize backup housing; legal options remain unassessed."]
+    : ["Preservation options still need review. One denial, a declined arrangement, or a judgment does not establish that all options are exhausted."];
+  return { recoveryPriority, simulated, reasons, paths: [
+    { id: "PAYMENT_ARRANGEMENT", state: c.paymentPlanRejected ? "DECLINED" : c.paymentPlanAccepted ? "CONFIRMED" : c.paymentPlanDiscussed ? "ATTEMPTED" : "UNCERTAIN", reason: c.paymentPlanRejected ? "This arrangement was declined; other negotiations are not ruled out." : "Acceptance and ability to keep an arrangement must both be checked." },
+    { id: "ASSISTANCE", state: simulated ? "UNAVAILABLE" : c.assistanceStatus === "APPROVED" ? "CONFIRMED" : c.appliedForAssistance ? "ATTEMPTED" : "UNCERTAIN", reason: simulated ? "Simulated unavailability of modeled immediate rent assistance; not a statement about real providers." : "Each program decides separately. An approval still needs an amount and payment timing." },
+    { id: "OWN_FUNDS", state: selfFunds >= c.amountOwed ? "CONFIRMED" : "UNAVAILABLE", reason: selfFunds >= c.amountOwed ? "Reported cash and explicitly allocated timely income cover the debt; verify receipt and the amount due." : "Reported, timely allocated housing funds cannot cover the reported debt; new funds may change this." },
+    { id: "LEGAL_REVIEW", state: "UNCERTAIN", reason: "A qualified legal professional must assess defenses, deadlines, and remedies. HomePath cannot determine the outcome." },
+  ] };
+}
+
+export function classifyCase(c: UserCase, now: Date = new Date()): Classification {
+  const result = classifyStatus(c, now);
+  const days = daysUntil(c.courtDate, now);
+  const stage = effectiveStage(c);
+  const legalUrgency = stage === "JUDGMENT_ENTERED" || (days !== null && days <= 7) ? "IMMEDIATE"
+    : stage === "UNSURE" || (stage === "COURT_DATE_SCHEDULED" && days === null) ? "VERIFY"
+    : STAGE_ORDER[stage] >= 2 || days !== null ? "SOON" : "ROUTINE";
+  return { ...result, legalUrgency, preservation: evaluatePreservation(c, now) };
+}

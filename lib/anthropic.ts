@@ -1,3 +1,4 @@
+import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const CLAUDE_MODEL = "claude-opus-5-5";
@@ -14,6 +15,6 @@ export class MissingApiKeyError extends Error {
 /** Server-only singleton. Throws MissingApiKeyError when no key is configured. */
 export function getAnthropic(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) throw new MissingApiKeyError();
-  if (!client) client = new Anthropic();
+  if (!client) client = new Anthropic({ timeout: 30_000, maxRetries: 0 });
   return client;
 }

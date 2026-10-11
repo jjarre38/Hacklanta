@@ -1,4 +1,5 @@
 import type { CaseStatus, HousingBarrier, Resource, ResourceCategory, ResourceMatch, ResourceStatus, UserCase } from "@/types";
+import { effectiveStage } from "./caseClassifier";
 import { normalizeCounty } from "@/lib/data/serviceArea";
 
 // Deterministic resource scoring. Pure function — no I/O.
@@ -129,10 +130,13 @@ export function matchResources(
   const matches: ResourceMatch[] = [];
   for (const r of resources) {
     const cats = categoriesOf(r);
+    const evaluation = evaluateResource(r, userCase, county);
+    if (evaluation.excluded || r.status === "CLOSED") continue;
+    if (userCase?.demoScenario?.simulated && userCase.demoScenario.immediateAssistanceUnavailable && (r.category === "RENTAL_ASSISTANCE" || (options.categories?.length === 1 && options.categories[0] === "RENTAL_ASSISTANCE"))) continue;
     if (options.categories?.length && !cats.some((c) => options.categories!.includes(c))) continue;
     if (options.openOnly && r.status !== "OPEN") continue;
 
-    const reasons: string[] = [];
+    const reasons: string[] = [...evaluation.reasons];
     let score = 0;
 
     if (county) {
@@ -167,7 +171,7 @@ export function matchResources(
       reasons.push(`Addresses what you said is hardest: ${BARRIER_LABELS[userCase!.housingBarrier!].toLowerCase()}`);
     }
 
-    matches.push({ resource: r, score, reasons });
+    matches.push({ resource: r, score, reasons, eligibility: evaluation.eligibility, availability: r.status, constraintsEvaluated: evaluation.constraintsEvaluated });
   }
 
   // Closed resources always sort last; otherwise by score, then availability, then name.
@@ -196,4 +200,36 @@ function relevanceReason(status: CaseStatus, category: ResourceCategory): string
     case "TRANSITION_RECOVERY":
       return `${CATEGORY_LABELS[category]} supports your next step`;
   }
+}
+
+/** Exclusions require published restrictions. Passing known checks is not eligibility approval. */
+export function evaluateResource(r: Resource, c: Partial<UserCase> | null, county = c?.county) {
+  const constraintsEvaluated: string[] = [];
+  const reasons: string[] = [];
+  let excluded = false;
+  let unknown = !county;
+  if (county) { constraintsEvaluated.push("county"); if (!resourceServesCounty(r, county)) { excluded = true; reasons.push("Outside the published service counties."); } }
+  if (r.restrictionSourceUrl) {
+    if (r.zipCodesServed?.length) {
+      constraintsEvaluated.push("ZIP");
+      if (!c?.zipCode) { unknown = true; reasons.push("ZIP eligibility needs confirmation."); }
+      else if (!r.zipCodesServed.includes(c.zipCode)) { excluded = true; reasons.push("Outside the published ZIP restriction."); }
+    }
+    if (r.requiresEvictionFiling) {
+      constraintsEvaluated.push("eviction filing");
+      const stage = c?.evictionStage ? effectiveStage({ evictionStage: c.evictionStage, courtDate: c.courtDate }) : undefined;
+      if (!stage || stage === "UNSURE") { unknown = true; reasons.push("A filing is required; your filing status is unknown."); }
+      else if (["BEHIND_ON_RENT", "NOTICE_RECEIVED"].includes(stage)) { excluded = true; reasons.push("A filed eviction is required."); }
+    }
+    if (r.familiesOnly) {
+      constraintsEvaluated.push("family restriction");
+      if (c?.hasChildren === undefined) unknown = true;
+      else if (!c.hasChildren) { excluded = true; reasons.push("This program requires children in the household."); }
+    }
+  } else if (r.zipCodesServed?.length || r.requiresEvictionFiling || r.familiesOnly) {
+    unknown = true; reasons.push("Restriction metadata lacks a verified source; check with the provider.");
+  }
+  reasons.push("Provider must confirm eligibility and capacity; a match is not approval.");
+  if (r.status === "UNKNOWN") reasons.push("Current application or funding availability is unknown.");
+  return { excluded, eligibility: (unknown ? "UNKNOWN" : "POTENTIALLY_RELEVANT") as "UNKNOWN" | "POTENTIALLY_RELEVANT", constraintsEvaluated, reasons };
 }

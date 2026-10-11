@@ -31,7 +31,7 @@ export function housingGuidance(prefs: HousingPreferences, userCase: UserCase | 
         `Your budget of ${formatMoney(prefs.maxRent)} is above ~30% of your monthly income (${formatMoney(affordableRent)}). Income-based housing or a voucher may make rent more sustainable.`,
       );
     } else {
-      tips.push(`A rent of ${formatMoney(prefs.maxRent)} is within ~30% of your income — a good sign the home will be sustainable.`);
+      tips.push(`A rent of ${formatMoney(prefs.maxRent)} is within ~30% of your income — a rough benchmark only. Check utilities, transportation, childcare, debts, and other essentials before choosing a rent.`);
     }
   }
 
