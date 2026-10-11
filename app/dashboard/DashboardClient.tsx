@@ -61,6 +61,13 @@ export function DashboardClient() {
     if (mustDoIntake) router.replace("/intake");
   }, [mustDoIntake, router]);
 
+  // "My Plan" is for signed-in users only. If accounts aren't configured on this deployment
+  // (no Supabase keys), nobody could sign in, so the plan stays available as a guest.
+  const needsSignIn = account.status === "signed-out";
+  useEffect(() => {
+    if (needsSignIn) router.replace("/account?reason=plan");
+  }, [needsSignIn, router]);
+
   useEffect(() => {
     if (!justChanged) return;
     const t = setTimeout(() => setJustChanged(false), 1600);
@@ -68,6 +75,7 @@ export function DashboardClient() {
   }, [justChanged]);
 
   // Also hold the skeleton while a signed-in account's plan is still loading, so its empty state doesn't flash.
+  if (account.status === "loading" || needsSignIn) return <DashboardSkeleton />;
   if (!loaded || (!userCase && signedIn && (!account.caseReady || mustDoIntake))) return <DashboardSkeleton />;
   if (!userCase) return <EmptyState onLoadMaria={() => update(createCaseFromIntake(mariaIntake()))} />;
 

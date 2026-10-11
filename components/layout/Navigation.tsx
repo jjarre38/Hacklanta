@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { Home, Menu, UserRound, X } from "lucide-react";
+import { Lock, Menu, UserRound, X } from "lucide-react";
 import { useCase } from "@/lib/client/caseStore";
 import { startAccountSync, useAccount } from "@/lib/client/account";
 
@@ -41,6 +41,9 @@ export function Navigation() {
   useEffect(() => startAccountSync(), []);
   const account = useAccount();
   const signedIn = account.status === "signed-in";
+  // My Plan requires an account; signed-out visitors are sent to sign in instead.
+  const planLocked = account.status === "signed-out";
+  const hrefFor = (href: string) => (href === "/dashboard" && planLocked ? "/account?reason=plan" : href);
 
   const container = WIDE_PAGES.some((p) => pathname.startsWith(p)) ? "container-wide" : "container-page";
   const landing = pathname === "/";
@@ -53,13 +56,14 @@ export function Navigation() {
           {LINKS.map((l) => (
             <Link
               key={l.href}
-              href={l.href}
+              href={hrefFor(l.href)}
               className={clsx(
                 "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 pathname.startsWith(l.href) ? "bg-white/15 text-white" : "text-slate-200 hover:bg-white/10 hover:text-white",
               )}
             >
               {l.label}
+              {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-label="(sign in required)" />}
             </Link>
           ))}
           <Link
@@ -95,13 +99,14 @@ export function Navigation() {
             {LINKS.map((l) => (
               <Link
                 key={l.href}
-                href={l.href}
+                href={hrefFor(l.href)}
                 className={clsx(
                   "rounded-lg px-3 py-3 text-base font-medium",
                   pathname.startsWith(l.href) ? "bg-brand-50 text-brand-700" : "text-ink hover:bg-slate-100",
                 )}
               >
                 {l.label}
+                {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-4 w-4 align-[-2px]" aria-label="(sign in required)" />}
               </Link>
             ))}
             <Link

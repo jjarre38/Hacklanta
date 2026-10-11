@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
-import { AlertCircle, CheckCircle2, CloudOff, Eye, EyeOff, Loader2, LogOut, Sparkles, UserRound } from "lucide-react";
+import { AlertCircle, CheckCircle2, CloudOff, Eye, EyeOff, Loader2, Lock, LogOut, Sparkles, UserRound } from "lucide-react";
 import { signIn, signInDemo, signOut, signUp, useAccount } from "@/lib/client/account";
 import { clearCase, useCase } from "@/lib/client/caseStore";
 import { DEMO_ACCOUNT } from "@/lib/demo/demoAccount";
@@ -17,6 +17,7 @@ export function AccountClient() {
   const account = useAccount();
   const { userCase } = useCase();
   const [justSignedIn, setJustSignedIn] = useState(false);
+  const fromPlan = useSearchParams().get("reason") === "plan";
 
   // After signing in, wait until the account's saved plan has loaded, then go to it.
   // Accounts without a plan go straight to the questionnaire.
@@ -32,7 +33,7 @@ export function AccountClient() {
         </div>
       )}
       {account.status === "unconfigured" && <NotConfigured />}
-      {account.status === "signed-out" && <SignInForm onSignedIn={() => setJustSignedIn(true)} />}
+      {account.status === "signed-out" && <SignInForm fromPlan={fromPlan} onSignedIn={() => setJustSignedIn(true)} />}
       {account.status === "signed-in" && (justSignedIn ? <Redirecting /> : <SignedIn />)}
     </div>
   );
@@ -46,7 +47,8 @@ function Redirecting() {
   );
 }
 
-function SignInForm({ onSignedIn }: { onSignedIn: () => void }) {
+function SignInForm({ fromPlan, onSignedIn }: { fromPlan: boolean; onSignedIn: () => void }) {
+  const hasLocalPlan = Boolean(useCase().userCase);
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,7 +88,18 @@ function SignInForm({ onSignedIn }: { onSignedIn: () => void }) {
   return (
     <>
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{mode === "sign-in" ? "Sign in" : "Create an account"}</h1>
-      <p className="mt-1 text-ink-soft">Save your plan to an account so you can come back to it on any device. You can also keep using HomePath without one.</p>
+      <p className="mt-1 text-ink-soft">
+        Your plan is saved to your account so you can come back to it on any device. Resources and Know Your Rights stay open to everyone.
+      </p>
+      {fromPlan && (
+        <p className="mt-4 flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900" role="status">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            Sign in or create an account to see your plan.
+            {hasLocalPlan && " The answers you just gave will be saved to your new account."}
+          </span>
+        </p>
+      )}
 
       <Card className="mt-6">
         <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account">
