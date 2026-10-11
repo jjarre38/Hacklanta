@@ -80,17 +80,24 @@ test("document rejects malformed multipart, missing/empty/unsupported files and 
   f.set("file", new Blob(["%PDF-1.7"], { type: "application/pdf" }), "private.pdf");
   assert.equal((await document(formRequest(f))).status, 400);
 });
-test("public AI disabled without operator configuration; token checked and calls bounded", async () => {
+test("AI requires a signed-in account or the operator token; calls bounded per caller", async () => {
   const oldKey = process.env.ANTHROPIC_API_KEY, oldToken = process.env.HOMEPATH_AI_ACCESS_TOKEN;
+  const bearer = (token: string) => new Request("http://localhost", { headers: { authorization: `Bearer ${token}` } });
+  const verify = async (token: string) => (token.startsWith("session-") ? token.slice(8) : null);
   try {
     delete process.env.ANTHROPIC_API_KEY; delete process.env.HOMEPATH_AI_ACCESS_TOKEN;
     assert.equal((await draft(json({}))).status, 503);
     process.env.ANTHROPIC_API_KEY = "test-only";
+    assert.equal((await draft(json({}))).status, 401);
+    await assert.rejects(authorizeAI(json({}), 1_000_000, verify), /Sign in/);
+    await assert.rejects(authorizeAI(bearer("forged"), 1_000_000, verify), /Sign in/);
     process.env.HOMEPATH_AI_ACCESS_TOKEN = "test-only-operator-token-with-at-least-32-characters";
-    assert.throws(() => authorizeAI(json({}), 1_000_000), /authorization/);
-    const authorized = new Request("http://localhost", { headers: { authorization: `Bearer ${process.env.HOMEPATH_AI_ACCESS_TOKEN}` } });
-    for (let i = 0; i < 5; i++) authorizeAI(authorized, 1_000_000);
-    assert.throws(() => authorizeAI(authorized, 1_000_000), /limit/);
+    for (let i = 0; i < 5; i++) await authorizeAI(bearer(process.env.HOMEPATH_AI_ACCESS_TOKEN), 1_000_000, verify);
+    await assert.rejects(authorizeAI(bearer(process.env.HOMEPATH_AI_ACCESS_TOKEN), 1_000_000, verify), /limit/);
+    for (let i = 0; i < 5; i++) await authorizeAI(bearer("session-alice"), 1_000_000, verify);
+    await assert.rejects(authorizeAI(bearer("session-alice"), 1_000_000, verify), /limit/);
+    await authorizeAI(bearer("session-bob"), 1_000_000, verify);
+    await authorizeAI(bearer("session-alice"), 1_060_000, verify);
   } finally {
     if (oldKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = oldKey;
     if (oldToken === undefined) delete process.env.HOMEPATH_AI_ACCESS_TOKEN; else process.env.HOMEPATH_AI_ACCESS_TOKEN = oldToken;

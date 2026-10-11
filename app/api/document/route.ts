@@ -7,7 +7,7 @@ import { authorizeAI, boundedBody, RequestError, requestError, requestStatus } f
 export const maxDuration = 60;
 const MAX_BYTES = 10 * 1024 * 1024;
 
-/** Sample is offline. Real documents require explicit processing consent and a private operator token.
+/** Sample is offline. Real documents require explicit processing consent and a signed-in account (or the operator token).
  * No documents, filenames, or extraction results are persisted by this route. */
 export async function POST(req: Request) {
   let form: FormData;
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     if (!SUPPORTED_MIME_TYPES.includes(file.type as SupportedMimeType)) throw new RequestError("Please upload a PDF or a supported image.", 415);
     if (file.size > MAX_BYTES) throw new RequestError("That file is larger than 10 MB.", 413);
     if (form.get("consentToAIProcessing") !== "true") throw new RequestError("Consent is required before sending a sensitive document to Anthropic for processing.", 400);
-    authorizeAI(req);
+    await authorizeAI(req);
     const bytes = await file.arrayBuffer();
     const extracted = await extractDocument({ kind: "file", mimeType: file.type as SupportedMimeType, base64: Buffer.from(bytes).toString("base64") });
     return NextResponse.json({ extracted, stored: false, processing: "ANTHROPIC", requiresUserConfirmation: true });

@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { FileText, Loader2, Sparkles, Upload } from "lucide-react";
 import type { ExtractedDocument } from "@/types";
 import { getSessionId } from "@/lib/client/caseStore";
+import { authHeaders } from "@/lib/client/account";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -14,10 +15,11 @@ import { ExtractionReview } from "./ExtractionReview";
 type Phase = { kind: "idle" } | { kind: "uploading"; progress: number; label: string } | { kind: "reading"; label: string } | { kind: "review"; extracted: ExtractedDocument } | { kind: "done" };
 
 /** POST to /api/document with upload progress (fetch can't report it). */
-function send(form: FormData, onProgress: (pct: number) => void): Promise<{ extracted: ExtractedDocument }> {
+function send(form: FormData, headers: Record<string, string>, onProgress: (pct: number) => void): Promise<{ extracted: ExtractedDocument }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/document");
+    for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
     xhr.upload.onload = () => onProgress(100);
     xhr.onload = () => {
@@ -47,7 +49,7 @@ export function DocumentUpload({ onApply }: { onApply: (doc: ExtractedDocument) 
     form.set("sessionId", getSessionId());
     setPhase({ kind: "uploading", progress: 0, label });
     try {
-      const { extracted } = await send(form, (progress) =>
+      const { extracted } = await send(form, await authHeaders(), (progress) =>
         setPhase(progress >= 100 ? { kind: "reading", label } : { kind: "uploading", progress, label }),
       );
       setPhase({ kind: "review", extracted });
@@ -82,7 +84,7 @@ export function DocumentUpload({ onApply }: { onApply: (doc: ExtractedDocument) 
 
       {phase.kind === "idle" && (
         <div className="space-y-3">
-          <label className="flex items-start gap-2 text-sm text-ink-soft"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1" />{tr("I agree to send this document to Anthropic for extraction. Original text and facts are preserved; I will review the result. The labeled demo sample works without AI or consent.")}</label>
+          <label className="flex items-start gap-2 text-sm text-ink-soft"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1" />{tr("I agree to send this document to Anthropic for extraction. Requires signing in to an account. Original text and facts are preserved; I will review the result. The labeled demo sample works without AI or consent.")}</label>
           <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center hover:border-brand-400 hover:bg-brand-50/50">
             <Upload className="h-7 w-7 text-brand-600" aria-hidden />
             <span className="font-semibold text-ink">{tr("Choose a file or take a photo")}</span>

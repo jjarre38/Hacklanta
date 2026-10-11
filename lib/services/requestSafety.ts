@@ -1,5 +1,6 @@
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 
 export class RequestError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -29,17 +30,35 @@ export async function boundedJson(req: Request): Promise<unknown> {
   catch { throw new RequestError("Invalid JSON.", 400); }
 }
 
-// Per-process upper bound, plus a private operator token. Public browsers never get this token.
-let windowStart = 0; let calls = 0;
-export function authorizeAI(req: Request, now = Date.now()): void {
+/** Resolve a Supabase access token to its user ID, or null if it isn't a valid signed-in session. */
+async function supabaseUserId(token: string): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL, anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey || !token) return null;
+  const client = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await client.auth.getUser(token);
+  return error || !data.user ? null : data.user.id;
+}
+
+function isOperator(supplied: string): boolean {
   const token = process.env.HOMEPATH_AI_ACCESS_TOKEN;
-  if (!process.env.ANTHROPIC_API_KEY || !token || token.length < 32) throw new RequestError("Live AI is disabled for this guest demo. You can enter details manually or use the labeled sample.", 503);
-  const supplied = req.headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
+  if (!token || token.length < 32) return false;
   const a = Buffer.from(supplied), b = Buffer.from(token);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) throw new RequestError("This AI endpoint requires operator authorization.", 403);
-  if (now - windowStart >= 60_000) { windowStart = now; calls = 0; }
-  if (calls >= 5) throw new RequestError("AI request limit reached. Try again later.", 429);
-  calls++;
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+// Live AI is for signed-in accounts (Supabase session) or the private operator token; guests stay offline.
+// Per-process limits: each caller gets 5 calls a minute, and all callers together get 30.
+const PER_CALLER = 5, TOTAL = 30;
+let windowStart = 0; let total = 0; const perCaller = new Map<string, number>();
+export async function authorizeAI(req: Request, now = Date.now(), verifyUser = supabaseUserId): Promise<void> {
+  if (!process.env.ANTHROPIC_API_KEY) throw new RequestError("Live AI is not configured on this server. You can enter details manually or use the labeled sample.", 503);
+  const supplied = req.headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
+  const caller = isOperator(supplied) ? "operator" : await verifyUser(supplied).catch(() => null);
+  if (!caller) throw new RequestError("Sign in to use AI features. You can still enter details manually or use the labeled sample.", 401);
+  if (now - windowStart >= 60_000) { windowStart = now; total = 0; perCaller.clear(); }
+  const used = perCaller.get(caller) ?? 0;
+  if (used >= PER_CALLER || total >= TOTAL) throw new RequestError("AI request limit reached. Try again later.", 429);
+  perCaller.set(caller, used + 1); total++;
 }
 export const requestError = (err: unknown) => ({ error: err instanceof RequestError ? err.message : "Invalid request." });
 export const requestStatus = (err: unknown) => err instanceof RequestError ? err.status : 400;

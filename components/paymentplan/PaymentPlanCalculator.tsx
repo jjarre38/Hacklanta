@@ -10,6 +10,7 @@ import type { PaymentInstallment, PaymentPlan, UserCase } from "@/types";
 import { buildPaymentPlan, sumInstallments } from "@/lib/services/paymentPlanService";
 import { addDays, parseDate, toISODate } from "@/lib/format";
 import { DRAFT_DISCLAIMER } from "@/lib/copy";
+import { authHeaders } from "@/lib/client/account";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Expandable } from "@/components/ui/Expandable";
@@ -67,7 +68,7 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
     try {
       const res = await fetch("/api/draft-message", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({
           language: locale,
           consentToAIProcessing: consent,
@@ -227,7 +228,7 @@ export function PaymentPlanCalculator({ userCase }: { userCase: UserCase }) {
         </Button>
         <label className="mt-3 flex items-start gap-2 text-xs text-ink-muted">
           <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5" />
-          {tr("Optional AI: I agree to send these plan details to Anthropic to draft a message. This requires authorized access; the site operator pays API charges.")}
+          {tr("Optional AI: I agree to send these plan details to Anthropic to draft a message. Requires signing in to an account; the site operator pays API charges.")}
         </label>
         <Button variant="outline" className="mt-3 w-full sm:w-auto" onClick={draft} disabled={!canDraft || drafting || !consent}>
           {drafting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <MessageSquareText className="h-4 w-4" aria-hidden />}

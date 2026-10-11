@@ -8,7 +8,7 @@ export const maxDuration = 60;
 /** POST: turn a deterministic payment plan into a drafted landlord message. */
 export async function POST(req: Request) {
   let body: unknown;
-  try { authorizeAI(req); body = await boundedJson(req); }
+  try { await authorizeAI(req); body = await boundedJson(req); }
   catch (err) { return NextResponse.json(requestError(err), { status: requestStatus(err) }); }
   if (!body || typeof body !== "object" || !("consentToAIProcessing" in body) || body.consentToAIProcessing !== true) {
     return NextResponse.json({ error: "Consent is required to send plan details to Anthropic." }, { status: 400 });

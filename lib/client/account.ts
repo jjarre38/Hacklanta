@@ -172,6 +172,12 @@ export function signInDemo() {
   return signIn(DEMO_ACCOUNT.email, DEMO_ACCOUNT.password);
 }
 
+/** Authorization header for server routes that need a signed-in account (live AI); empty for guests. */
+export async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = (await getSupabaseBrowser()?.auth.getSession()) ?? { data: { session: null } };
+  return data.session ? { Authorization: `Bearer ${data.session.access_token}` } : {};
+}
+
 export async function signOut() {
   await getSupabaseBrowser()?.auth.signOut();
 }
