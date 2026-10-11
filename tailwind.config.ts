@@ -8,18 +8,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Primary: calm, trustworthy blue
+        // Primary: calm violet
         brand: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b7fd9",
-          600: "#2563b8",
-          700: "#1e4f94",
-          800: "#1c3f73",
-          900: "#172f54",
+          50: "#f5f2fc",
+          100: "#ede6f8",
+          200: "#d9cbef",
+          300: "#c4b0e5",
+          400: "#a48ace",
+          500: "#8464b0",
+          600: "#705098",
+          700: "#5c407e",
+          800: "#46305f",
+          900: "#302044",
         },
         // Secondary: supportive sage green (recovery, progress)
         sage: {
@@ -66,19 +66,19 @@ const config: Config = {
           700: "#5242a3",
         },
         ink: {
-          DEFAULT: "#1f2937",
+          DEFAULT: "#352548",
           soft: "#4b5563",
           muted: "#6b7280",
         },
-        canvas: "#f8fafc",
+        canvas: "#f7f5fb",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       borderRadius: {
-        xl: "0.875rem",
-        "2xl": "1.25rem",
+        xl: "0.5rem",
+        "2xl": "0.75rem",
       },
       boxShadow: {
         soft: "0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.06)",

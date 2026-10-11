@@ -8,7 +8,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ className, padded = true, ...props }: CardProps) {
   return (
     <div
-      className={clsx("rounded-2xl border border-slate-200 bg-white shadow-soft", padded && "p-4 sm:p-6", className)}
+      className={clsx("rounded-lg border border-slate-200/80 bg-white shadow-soft", padded && "p-4 sm:p-6", className)}
       {...props}
     />
   );
@@ -27,7 +27,7 @@ export function CardHeader({ title, description, icon, action, className }: Card
     <div className={clsx("mb-4 flex items-start justify-between gap-4", className)}>
       <div className="flex items-start gap-3">
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
             {icon}
           </div>
         )}
