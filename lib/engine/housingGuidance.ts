@@ -1,3 +1,4 @@
+import { createTranslator, type Locale } from "@/lib/i18n/core";
 import type { ResourceCategory, UserCase } from "@/types";
 import { daysUntil, formatMoney } from "@/lib/format";
 
@@ -19,7 +20,8 @@ export interface HousingGuidance {
   urgent: boolean;
 }
 
-export function housingGuidance(prefs: HousingPreferences, userCase: UserCase | null, now: Date = new Date()): HousingGuidance {
+export function housingGuidance(prefs: HousingPreferences, userCase: UserCase | null, now: Date = new Date(), locale: Locale = "en"): HousingGuidance {
+  const tr = createTranslator(locale);
   const tips: string[] = [];
   const income = userCase?.monthlyIncome ?? 0;
   // Common affordability rule of thumb: rent at or below ~30% of income.
@@ -28,28 +30,28 @@ export function housingGuidance(prefs: HousingPreferences, userCase: UserCase | 
   if (affordableRent !== null) {
     if (prefs.maxRent > affordableRent) {
       tips.push(
-        `Your budget of ${formatMoney(prefs.maxRent)} is above ~30% of your monthly income (${formatMoney(affordableRent)}). Income-based housing or a voucher may make rent more sustainable.`,
+        tr("Your budget of {0} is above ~30% of your monthly income ({1}). Income-based housing or a voucher may make rent more sustainable.", { 0: formatMoney(prefs.maxRent, locale), 1: formatMoney(affordableRent, locale) }),
       );
     } else {
-      tips.push(`A rent of ${formatMoney(prefs.maxRent)} is within ~30% of your income — a rough benchmark only. Check utilities, transportation, childcare, debts, and other essentials before choosing a rent.`);
+      tips.push(tr("A rent of {0} is within ~30% of your income — a rough benchmark only. Check utilities, transportation, childcare, debts, and other essentials before choosing a rent.", { 0: formatMoney(prefs.maxRent, locale) }));
     }
   }
 
   const days = daysUntil(prefs.moveInDate, now);
   const urgent = days !== null && days <= 14;
   if (urgent) {
-    tips.push("Your move-in date is within two weeks. Line up temporary housing as a backup while you search, and ask about deposit help now.");
+    tips.push(tr("Your move-in date is within two weeks. Line up temporary housing as a backup while you search, and ask about deposit help now."));
   }
   if (prefs.needsTransit) {
-    tips.push("You need transit access: search near MARTA rail or bus lines, and check Cobb Link, Ride Gwinnett, or Xpress routes outside the city.");
+    tips.push(tr("You need transit access: search near MARTA rail or bus lines, and check Cobb Link, Ride Gwinnett, or Xpress routes outside the city."));
   }
   if (prefs.bedrooms >= 3) {
-    tips.push("Larger units have fewer listings. Housing authority waitlists and family-focused programs may open more options.");
+    tips.push(tr("Larger units have fewer listings. Housing authority waitlists and family-focused programs may open more options."));
   }
   if (userCase?.housingBarrier === "EVICTION_RECORD" || userCase?.evictionStage === "JUDGMENT_ENTERED") {
-    tips.push("Some landlords consider an eviction record. Ask legal aid about a dismissal or agreement, and look for second-chance or income-based properties.");
+    tips.push(tr("Some landlords consider an eviction record. Ask legal aid about a dismissal or agreement, and look for second-chance or income-based properties."));
   }
-  tips.push("On GeorgiaHousingSearch.org, filter by your rent limit, bedrooms, and whether landlords accept Housing Choice Vouchers.");
+  tips.push(tr("On GeorgiaHousingSearch.org, filter by your rent limit, bedrooms, and whether landlords accept Housing Choice Vouchers."));
 
   const base: ResourceCategory[] = ["AFFORDABLE_HOUSING", "SECURITY_DEPOSIT_ASSISTANCE", "TEMPORARY_HOUSING", "MOVING_ASSISTANCE", "EMERGENCY_SHELTER"];
   let categories: ResourceCategory[] = urgent

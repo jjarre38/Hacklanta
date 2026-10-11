@@ -1,5 +1,7 @@
 "use client";
 
+import { LanguageSelector, useI18n } from "@/lib/i18n/LocaleProvider";
+
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -32,6 +34,7 @@ export function Logo({ light = false }: { light?: boolean }) {
 }
 
 export function Navigation() {
+  const { text, tr } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { userCase, loaded } = useCase();
@@ -50,9 +53,10 @@ export function Navigation() {
 
   return (
     <header className={clsx("z-40", landing ? "absolute inset-x-0 top-0 border-b border-white/10 bg-[#291b3a]/20" : "sticky top-0 border-b border-white/10 bg-[#302044]/95 backdrop-blur")}>
-      <nav className={clsx(container, "flex h-20 items-center justify-between")} aria-label="Main">
+      <nav className={clsx(container, "flex h-20 items-center justify-between")} aria-label={tr("Main")}>
         <Logo light />
         <div className="hidden items-center gap-1 lg:flex">
+          <LanguageSelector light />
           {LINKS.map((l) => (
             <Link
               key={l.href}
@@ -62,8 +66,8 @@ export function Navigation() {
                 pathname.startsWith(l.href) ? "bg-white/15 text-white" : "text-slate-200 hover:bg-white/10 hover:text-white",
               )}
             >
-              {l.label}
-              {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-label="(sign in required)" />}
+              {text(l.label)}
+              {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-label={tr("(sign in required)")} />}
             </Link>
           ))}
           <Link
@@ -74,12 +78,11 @@ export function Navigation() {
             )}
           >
             <UserRound className="h-4 w-4" aria-hidden />
-            {signedIn ? "Account" : "Sign in"}
+            {signedIn ? tr("Account") : tr("Sign in")}
           </Link>
           {loaded && !userCase && (
             <Link href="/intake" className={clsx("ml-2 rounded-md px-4 py-2 text-sm font-semibold text-white", landing ? "bg-[#8464b0] hover:bg-[#705098]" : "bg-brand-600 hover:bg-brand-700")}>
-              Get started
-            </Link>
+              {tr("Get started")}</Link>
           )}
         </div>
         <button
@@ -88,7 +91,7 @@ export function Navigation() {
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-controls="mobile-navigation"
-          aria-label={open ? "Close menu" : "Open menu"}
+          aria-label={open ? tr("Close menu") : tr("Open menu")}
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -96,6 +99,7 @@ export function Navigation() {
       {open && (
         <div id="mobile-navigation" className="border-t border-slate-200 bg-white lg:hidden">
           <div className={clsx(container, "flex flex-col py-2")}>
+            <div className="px-3 py-2"><LanguageSelector /></div>
             {LINKS.map((l) => (
               <Link
                 key={l.href}
@@ -105,8 +109,8 @@ export function Navigation() {
                   pathname.startsWith(l.href) ? "bg-brand-50 text-brand-700" : "text-ink hover:bg-slate-100",
                 )}
               >
-                {l.label}
-                {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-4 w-4 align-[-2px]" aria-label="(sign in required)" />}
+                {text(l.label)}
+                {l.href === "/dashboard" && planLocked && <Lock className="ml-1 inline h-4 w-4 align-[-2px]" aria-label={tr("(sign in required)")} />}
               </Link>
             ))}
             <Link
@@ -117,12 +121,11 @@ export function Navigation() {
               )}
             >
               <UserRound className="h-5 w-5" aria-hidden />
-              {signedIn ? `Account (${account.email})` : "Sign in or create account"}
+              {signedIn ? tr("Account ({0})", { 0: account.email ?? "" }) : tr("Sign in or create account")}
             </Link>
             {loaded && !userCase && (
               <Link href="/intake" className="mt-2 rounded-lg bg-brand-600 px-3 py-3 text-center text-base font-semibold text-white">
-                Build My Action Plan
-              </Link>
+                {tr("Build My Action Plan")}</Link>
             )}
           </div>
         </div>

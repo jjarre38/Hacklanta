@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MapPin } from "lucide-react";
@@ -15,19 +17,20 @@ const BANNERS: Record<string, { label: string; title: string; subtitle: string; 
 };
 
 export function PageBanner() {
+  const { text, tr } = useI18n();
   const pathname = usePathname();
   const banner = BANNERS[pathname];
   if (!banner) return null;
   const wide = pathname === "/dashboard";
   return (
-    <section aria-label={banner.label} className="relative isolate overflow-hidden bg-brand-900">
+    <section aria-label={text(banner.label)} className="relative isolate overflow-hidden bg-brand-900">
       <Image src={`/images/${banner.image}`} alt="" fill sizes="100vw" className="object-cover object-center" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#21152f]/95 via-[#3a2850]/85 to-[#3a2850]/40" />
       <div className={`${wide ? "container-wide" : "container-page"} relative py-9 sm:py-12`}>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#dfcff3] sm:text-xs">{banner.label}</p>
-        <p className="mt-3 max-w-3xl text-3xl font-medium leading-tight tracking-tight text-white sm:text-4xl">{banner.title}</p>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-slate-200">{banner.subtitle}</p>
-        <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-slate-300"><MapPin className="h-3 w-3" aria-hidden /> Here for Metro Atlanta renters</span>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#dfcff3] sm:text-xs">{text(banner.label)}</p>
+        <p className="mt-3 max-w-3xl text-3xl font-medium leading-tight tracking-tight text-white sm:text-4xl">{text(banner.title)}</p>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-slate-200">{text(banner.subtitle)}</p>
+        <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-slate-300"><MapPin className="h-3 w-3" aria-hidden /> {tr(" Here for Metro Atlanta renters")}</span>
       </div>
     </section>
   );

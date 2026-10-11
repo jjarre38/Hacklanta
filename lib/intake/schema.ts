@@ -8,8 +8,8 @@ import { SUPPORTED_COUNTY_NAMES } from "@/lib/data/serviceArea";
 const money = (label: string) =>
   z.number({ error: `Enter ${label} (use 0 if none)` }).min(0, "Can't be negative").max(1_000_000, "That looks too large");
 
-const optionalMoney = z.number().min(0, "Can't be negative").max(1_000_000).optional();
-const isoDate = z.string().refine(isISODate, "Choose a valid date");
+const optionalMoney = z.number({ error: "Enter a valid amount" }).min(0, "Can't be negative").max(1_000_000, "That looks too large").optional();
+const isoDate = z.string({ error: "Choose a valid date" }).refine(isISODate, "Choose a valid date");
 
 export const EVICTION_STAGES = [
   "BEHIND_ON_RENT",
@@ -32,8 +32,8 @@ export const EMPLOYMENT_STATUSES = [
 export const intakeSchema = z
   .object({
     // Location
-    zipCode: z.string().regex(/^\d{5}$/, "Enter a 5-digit ZIP code"),
-    county: z.string().min(1, "Choose your county"),
+    zipCode: z.string({ error: "Enter a 5-digit ZIP code" }).regex(/^\d{5}$/, "Enter a 5-digit ZIP code"),
+    county: z.string({ error: "Choose your county" }).min(1, "Choose your county"),
     // Financial
     monthlyRent: money("your monthly rent").refine((n) => n > 0, "Enter your monthly rent"),
     amountOwed: money("how much you owe"),
@@ -42,15 +42,15 @@ export const intakeSchema = z
     nextPaycheckAmount: optionalMoney,
     nextPaycheckDate: isoDate.optional(),
     // Household
-    householdSize: z.number({ error: "Enter household size" }).int().min(1, "At least 1").max(20),
+    householdSize: z.number({ error: "Enter household size" }).int("Enter a whole number").min(1, "At least 1").max(20, "Enter a household size of 20 or fewer"),
     hasChildren: z.boolean({ error: "Choose yes or no" }),
     employmentStatus: z.enum(EMPLOYMENT_STATUSES, { error: "Choose one" }),
     incomeRecentlyReduced: z.boolean({ error: "Choose yes or no" }),
     // Landlord
-    landlordName: z.string().max(120).optional(),
+    landlordName: z.string({ error: "Enter a name" }).max(120, "Use 120 characters or fewer").optional(),
     contactedLandlord: z.boolean({ error: "Choose yes or no" }),
-    paymentPlanDiscussed: z.boolean(),
-    paymentPlanRejected: z.boolean(),
+    paymentPlanDiscussed: z.boolean({ error: "Choose yes or no" }),
+    paymentPlanRejected: z.boolean({ error: "Choose yes or no" }),
     canAffordPaymentPlan: z.boolean({ error: "Choose yes or no" }),
     // Assistance
     appliedForAssistance: z.boolean({ error: "Choose yes or no" }),

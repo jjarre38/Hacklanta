@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type ReactNode } from "react";
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
@@ -27,6 +29,7 @@ interface ExpandableProps {
  * keyboard users never land on an invisible control.
  */
 export function Expandable({ children, collapsedHeight = 480, fadeClassName = "from-white", noun, className }: ExpandableProps) {
+  const { tr, text } = useI18n();
   const container = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
@@ -79,7 +82,7 @@ export function Expandable({ children, collapsedHeight = 480, fadeClassName = "f
           aria-expanded={expanded}
           className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50"
         >
-          {expanded ? "Show less" : noun ? `Show all ${noun}` : "Show more"}
+          {expanded ? tr("Show less") : noun ? tr("Show all {0}", { 0: text(noun) }) : tr("Show more")}
           <ChevronDown className={clsx("h-4 w-4 transition-transform", expanded && "rotate-180")} aria-hidden />
         </button>
       )}

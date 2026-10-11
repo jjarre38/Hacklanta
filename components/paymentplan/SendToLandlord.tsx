@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useState } from "react";
 import clsx from "clsx";
 import { Mail, MessageCircle, Send } from "lucide-react";
@@ -20,6 +22,7 @@ function normalizePhone(raw: string): string {
  * comes from their address/number and they keep a copy in their sent folder.
  */
 export function SendToLandlord({ subject, message }: { subject: string; message: string }) {
+  const { text, tr } = useI18n();
   const [method, setMethod] = useState<Method>("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -39,12 +42,12 @@ export function SendToLandlord({ subject, message }: { subject: string; message:
 
   return (
     <div className="mt-5 border-t border-brand-100 pt-4">
-      <p className="text-sm font-semibold text-ink">Send to your landlord</p>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:max-w-xs" role="radiogroup" aria-label="Send by">
+      <p className="text-sm font-semibold text-ink">{tr("Send to your landlord")}</p>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:max-w-xs" role="radiogroup" aria-label={tr("Send by")}>
         {(
           [
-            { id: "email", label: "Email", icon: Mail },
-            { id: "text", label: "Text message", icon: MessageCircle },
+            { id: "email", label: tr("Email"), icon: Mail },
+            { id: "text", label: tr("Text message"), icon: MessageCircle },
           ] as const
         ).map(({ id, label, icon: Icon }) => (
           <button
@@ -58,7 +61,7 @@ export function SendToLandlord({ subject, message }: { subject: string; message:
               method === id ? "border-brand-500 bg-brand-50 text-brand-800 ring-1 ring-brand-500" : "border-slate-300 bg-white",
             )}
           >
-            <Icon className="h-4 w-4" aria-hidden /> {label}
+            <Icon className="h-4 w-4" aria-hidden /> {text(label)}
           </button>
         ))}
       </div>
@@ -68,8 +71,7 @@ export function SendToLandlord({ subject, message }: { subject: string; message:
           {method === "email" ? (
             <>
               <label htmlFor="landlord-email" className="field-label">
-                Landlord&apos;s email
-              </label>
+                {tr("Landlord's email")}</label>
               <input
                 id="landlord-email"
                 type="email"
@@ -84,8 +86,7 @@ export function SendToLandlord({ subject, message }: { subject: string; message:
           ) : (
             <>
               <label htmlFor="landlord-phone" className="field-label">
-                Landlord&apos;s mobile number
-              </label>
+                {tr("Landlord's mobile number")}</label>
               <input
                 id="landlord-phone"
                 type="tel"
@@ -101,15 +102,14 @@ export function SendToLandlord({ subject, message }: { subject: string; message:
         </div>
         <Button onClick={send} disabled={!valid || empty}>
           <Send className="h-4 w-4" aria-hidden />
-          {method === "email" ? "Open in email" : "Open in messages"}
+          {method === "email" ? tr("Open in email") : tr("Open in messages")}
         </Button>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
         {method === "email"
-          ? "This opens your email app with the message filled in. It's sent from your own account, so you'll keep a copy."
-          : "This opens your phone's messaging app with the message filled in. Works best on a phone."}{" "}
-        Nothing is sent until you press send there.
-      </p>
+          ? tr("This opens your email app with the message filled in. It's sent from your own account, so you'll keep a copy.")
+          : tr("This opens your phone's messaging app with the message filled in. Works best on a phone.")}{" "}
+        {tr("Nothing is sent until you press send there.")}</p>
     </div>
   );
 }

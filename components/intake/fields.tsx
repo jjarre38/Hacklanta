@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import clsx from "clsx";
 import { Check } from "lucide-react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
@@ -9,6 +11,7 @@ import type { IntakeValues } from "@/lib/intake/schema";
 type Name = FieldPath<IntakeValues>;
 
 export function FieldError({ name }: { name: Name }) {
+  const { text } = useI18n();
   const {
     formState: { errors },
   } = useFormContext<IntakeValues>();
@@ -16,18 +19,19 @@ export function FieldError({ name }: { name: Name }) {
   if (!err?.message) return null;
   return (
     <p className="field-error" role="alert">
-      {String(err.message)}
+      {text(String(err.message))}
     </p>
   );
 }
 
 export function Question({ label, hint, htmlFor, children }: { label: string; hint?: string; htmlFor?: string; children: ReactNode }) {
+  const { text } = useI18n();
   return (
     <div className="animate-fade-up">
       <label htmlFor={htmlFor} className="block text-base font-semibold text-ink">
-        {label}
+        {text(label)}
       </label>
-      {hint && <p className="mt-0.5 text-sm text-ink-muted">{hint}</p>}
+      {hint && <p className="mt-0.5 text-sm text-ink-muted">{text(hint)}</p>}
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -36,9 +40,10 @@ export function Question({ label, hint, htmlFor, children }: { label: string; hi
 const toNumber = (v: unknown) => (v === "" || v === null || v === undefined ? undefined : Number(v));
 
 export function MoneyInput({ name, label, hint, placeholder }: { name: Name; label: string; hint?: string; placeholder?: string }) {
+  const { text } = useI18n();
   const { register } = useFormContext<IntakeValues>();
   return (
-    <Question label={label} hint={hint} htmlFor={name}>
+    <Question label={text(label)} hint={text(hint)} htmlFor={name}>
       <div className="relative max-w-xs">
         <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-ink-muted">$</span>
         <input
@@ -58,9 +63,10 @@ export function MoneyInput({ name, label, hint, placeholder }: { name: Name; lab
 }
 
 export function NumberInput({ name, label, hint }: { name: Name; label: string; hint?: string }) {
+  const { text } = useI18n();
   const { register } = useFormContext<IntakeValues>();
   return (
-    <Question label={label} hint={hint} htmlFor={name}>
+    <Question label={text(label)} hint={text(hint)} htmlFor={name}>
       <input
         id={name}
         type="number"
@@ -76,9 +82,10 @@ export function NumberInput({ name, label, hint }: { name: Name; label: string; 
 }
 
 export function DateInput({ name, label, hint }: { name: Name; label: string; hint?: string }) {
+  const { text } = useI18n();
   const { register } = useFormContext<IntakeValues>();
   return (
-    <Question label={label} hint={hint} htmlFor={name}>
+    <Question label={text(label)} hint={text(hint)} htmlFor={name}>
       <input
         id={name}
         type="date"
@@ -112,6 +119,7 @@ export function ChoiceGroup<T extends string | boolean>({
   columns?: 1 | 2;
   onChange?: (value: T) => void;
 }) {
+  const { text } = useI18n();
   const { control } = useFormContext<IntakeValues>();
   return (
     <Controller
@@ -119,8 +127,8 @@ export function ChoiceGroup<T extends string | boolean>({
       name={name}
       render={({ field }) => (
         <fieldset className="animate-fade-up">
-          <legend className="text-base font-semibold text-ink">{label}</legend>
-          {hint && <p className="mt-0.5 text-sm text-ink-muted">{hint}</p>}
+          <legend className="text-base font-semibold text-ink">{text(label)}</legend>
+          {hint && <p className="mt-0.5 text-sm text-ink-muted">{text(hint)}</p>}
           <div className={clsx("mt-3 grid gap-2.5", columns === 2 && "sm:grid-cols-2")} role="radiogroup">
             {options.map((o) => {
               const selected = field.value === o.value;
@@ -140,8 +148,8 @@ export function ChoiceGroup<T extends string | boolean>({
                   )}
                 >
                   <span>
-                    <span className="block font-medium text-ink">{o.label}</span>
-                    {o.hint && <span className="mt-0.5 block text-sm text-ink-muted">{o.hint}</span>}
+                    <span className="block font-medium text-ink">{text(o.label)}</span>
+                    {o.hint && <span className="mt-0.5 block text-sm text-ink-muted">{text(o.hint)}</span>}
                   </span>
                   <span
                     className={clsx(
@@ -163,16 +171,17 @@ export function ChoiceGroup<T extends string | boolean>({
 }
 
 export function YesNo({ name, label, hint, onChange }: { name: Name; label: string; hint?: string; onChange?: (v: boolean) => void }) {
+  const { text, tr } = useI18n();
   return (
     <ChoiceGroup<boolean>
       name={name}
-      label={label}
-      hint={hint}
+      label={text(label)}
+      hint={text(hint)}
       columns={2}
       onChange={onChange}
       options={[
-        { value: true, label: "Yes" },
-        { value: false, label: "No" },
+        { value: true, label: tr("Yes") },
+        { value: false, label: tr("No") },
       ]}
     />
   );

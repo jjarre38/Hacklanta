@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
@@ -36,9 +39,10 @@ export function Badge({ tone = "gray", children, className, icon }: BadgeProps) 
 
 /** Small label used on every simulated value in the app. */
 export function DemoBadge({ className, label = "Demo data" }: { className?: string; label?: string }) {
+  const { text } = useI18n();
   return (
     <Badge tone="amber" className={className}>
-      {label}
+      {text(label)}
     </Badge>
   );
 }

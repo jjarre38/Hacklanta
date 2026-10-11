@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import type { ResourceCategory } from "@/types";
 import { CATEGORY_LABELS } from "@/lib/engine/resourceMatcher";
 import { SERVICE_COUNTIES } from "@/lib/data/serviceArea";
@@ -18,37 +20,35 @@ interface ResourceFiltersProps {
 }
 
 export function ResourceFilters({ value, onChange, categories }: ResourceFiltersProps) {
+  const { text, tr } = useI18n();
   const options = categories ?? (Object.keys(CATEGORY_LABELS) as ResourceCategory[]);
   return (
     <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-soft sm:grid-cols-[1fr_1fr_auto] sm:items-end sm:p-4">
       <div>
         <label htmlFor="filter-category" className="field-label">
-          Type of help
-        </label>
+          {tr("Type of help")}</label>
         <select
           id="filter-category"
           className="field-input"
           value={value.category}
           onChange={(e) => onChange({ ...value, category: e.target.value as ResourceCategory | "" })}
         >
-          <option value="">All types</option>
+          <option value="">{tr("All types")}</option>
           {options.map((c) => (
             <option key={c} value={c}>
-              {CATEGORY_LABELS[c]}
+              {text(CATEGORY_LABELS[c])}
             </option>
           ))}
         </select>
       </div>
       <div>
         <label htmlFor="filter-county" className="field-label">
-          County
-        </label>
+          {tr("County")}</label>
         <select id="filter-county" className="field-input" value={value.county} onChange={(e) => onChange({ ...value, county: e.target.value })}>
-          <option value="">All Metro Atlanta counties</option>
+          <option value="">{tr("All Metro Atlanta counties")}</option>
           {SERVICE_COUNTIES.map((c) => (
             <option key={c.name} value={c.name}>
-              {c.name} County
-            </option>
+              {tr("{0} County", { 0: c.name })}</option>
           ))}
         </select>
       </div>
@@ -59,7 +59,7 @@ export function ResourceFilters({ value, onChange, categories }: ResourceFilters
           checked={value.openOnly}
           onChange={(e) => onChange({ ...value, openOnly: e.target.checked })}
         />
-        <span className="text-sm font-medium">Open now only</span>
+        <span className="text-sm font-medium">{tr("Open now only")}</span>
       </label>
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { Briefcase, Compass } from "lucide-react";
 import type { ResourceCategory, UserCase } from "@/types";
 import { useCase } from "@/lib/client/caseStore";
@@ -39,6 +41,7 @@ function employmentSteps(c: UserCase | null): { title: string; reason: string }[
 }
 
 export function EmploymentClient() {
+  const { text, tr } = useI18n();
   const { userCase } = useCase();
   const { resources } = useResources();
   const categories: ResourceCategory[] = ["EMPLOYMENT_ASSISTANCE", "WORKFORCE_DEVELOPMENT", "PUBLIC_BENEFITS", ...(userCase?.hasChildren ? (["CHILDCARE_FAMILY"] as ResourceCategory[]) : [])];
@@ -48,40 +51,38 @@ export function EmploymentClient() {
   return (
     <div className="container-page py-8 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Rebuild your income</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("Rebuild your income")}</h1>
         <DemoBadge />
       </div>
       <p className="mt-1 max-w-2xl text-ink-soft">
-        Steady income is the foundation of a stable home. These free programs help with job search, training, and the benefits that bridge the gap.
-      </p>
+        {tr("Steady income is the foundation of a stable home. These free programs help with job search, training, and the benefits that bridge the gap.")}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside className="space-y-4">
           <Card>
-            <CardHeader icon={<Compass className="h-5 w-5" />} title={userCase ? "Next steps for you" : "Where to start"} />
+            <CardHeader icon={<Compass className="h-5 w-5" />} title={userCase ? tr("Next steps for you") : tr("Where to start")} />
             <ol className="space-y-3">
               {steps.map((s, i) => (
                 <li key={s.title} className="flex gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">{i + 1}</span>
                   <div>
-                    <p className="font-semibold">{s.title}</p>
-                    <p className="text-sm text-ink-muted">{s.reason}</p>
+                    <p className="font-semibold">{text(s.title)}</p>
+                    <p className="text-sm text-ink-muted">{text(s.reason)}</p>
                   </div>
                 </li>
               ))}
             </ol>
             {!userCase && (
               <ButtonLink href="/intake" variant="outline" className="mt-5 w-full">
-                Personalize these steps
-              </ButtonLink>
+                {tr("Personalize these steps")}</ButtonLink>
             )}
           </Card>
         </aside>
         <section>
           <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            <Briefcase className="h-5 w-5 text-brand-600" aria-hidden /> Programs {userCase ? `in ${userCase.county} County` : "in Metro Atlanta"}
+            <Briefcase className="h-5 w-5 text-brand-600" aria-hidden /> {tr(" Programs ")}{userCase ? tr("in {0} County", { 0: userCase.county }) : tr("in Metro Atlanta")}
           </h2>
-          <p className="mb-4 text-sm text-ink-muted">Including {categories.map((c) => CATEGORY_LABELS[c].toLowerCase()).join(", ")}.</p>
+          <p className="mb-4 text-sm text-ink-muted">{tr("Including ")}{categories.map((c) => text(CATEGORY_LABELS[c]).toLocaleLowerCase()).join(", ")}.</p>
           <div className="grid gap-4 md:grid-cols-2">
             {matches.map((m) => (
               <ResourceCard key={m.resource.id} match={m} />

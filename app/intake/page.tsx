@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/i18n/server";
 import { IntakeWizard } from "@/components/intake/IntakeWizard";
 
-export const metadata: Metadata = { title: "Build my action plan" };
+export function generateMetadata() { return pageMetadata("Build my action plan"); }
 
 export default function IntakePage() {
   return (

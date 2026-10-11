@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/LocaleProvider";
+
 import { useEffect, useState } from "react";
 import { Building2, Lightbulb } from "lucide-react";
 import type { ResourceMatch } from "@/types";
@@ -13,6 +15,7 @@ import { DemoBadge } from "@/components/ui/Badge";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 
 export function HousingClient() {
+  const { locale, text, tr } = useI18n();
   const { userCase } = useCase();
   const { resources } = useResources();
   const [prefs, setPrefs] = useState<HousingPreferences>({ maxRent: 1100, bedrooms: 2, county: "", moveInDate: "", needsTransit: false });
@@ -27,7 +30,7 @@ export function HousingClient() {
     }));
   }, [userCase]);
 
-  const guidance = housingGuidance(prefs, userCase);
+  const guidance = housingGuidance(prefs, userCase, new Date(), locale);
   // Recovery status gives housing categories top relevance; the barrier answer boosts its category.
   const ranked = matchResources(resources, userCase, {
     county: prefs.county || undefined,
@@ -46,27 +49,25 @@ export function HousingClient() {
   return (
     <div className="container-page py-8 sm:py-10">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Find your next home</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("Find your next home")}</h1>
         <DemoBadge />
       </div>
       <p className="mt-1 max-w-2xl text-ink-soft">
-        Tell us what you need and we&apos;ll point you to affordable housing programs, deposit help, and temporary options in Metro Atlanta.
-      </p>
+        {tr("Tell us what you need and we'll point you to affordable housing programs, deposit help, and temporary options in Metro Atlanta.")}</p>
       {userCase?.housingBarrier && (
         <p className="mt-3 inline-flex rounded-full bg-dusk-50 px-3 py-1 text-sm font-medium text-dusk-700">
-          Prioritized for: {BARRIER_LABELS[userCase.housingBarrier]}
+          {tr("Prioritized for: ")}{text(BARRIER_LABELS[userCase.housingBarrier])}
         </p>
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside className="space-y-4">
           <Card>
-            <CardHeader icon={<Building2 className="h-5 w-5" />} title="What you're looking for" />
+            <CardHeader icon={<Building2 className="h-5 w-5" />} title={tr("What you're looking for")} />
             <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               <div>
                 <label htmlFor="maxRent" className="field-label">
-                  Max monthly rent
-                </label>
+                  {tr("Max monthly rent")}</label>
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-ink-muted">$</span>
                   <input
@@ -81,33 +82,29 @@ export function HousingClient() {
               </div>
               <div>
                 <label htmlFor="bedrooms" className="field-label">
-                  Bedrooms
-                </label>
+                  {tr("Bedrooms")}</label>
                 <select id="bedrooms" className="field-input" value={prefs.bedrooms} onChange={(e) => setPrefs({ ...prefs, bedrooms: Number(e.target.value) })}>
                   {[0, 1, 2, 3, 4].map((n) => (
                     <option key={n} value={n}>
-                      {n === 0 ? "Studio" : n === 4 ? "4+" : n}
+                      {n === 0 ? tr("Studio") : n === 4 ? "4+" : n}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label htmlFor="area" className="field-label">
-                  Preferred area
-                </label>
+                  {tr("Preferred area")}</label>
                 <select id="area" className="field-input" value={prefs.county} onChange={(e) => setPrefs({ ...prefs, county: e.target.value })}>
-                  <option value="">Anywhere in Metro Atlanta</option>
+                  <option value="">{tr("Anywhere in Metro Atlanta")}</option>
                   {SERVICE_COUNTIES.map((c) => (
                     <option key={c.name} value={c.name}>
-                      {c.name} County
-                    </option>
+                      {c.name} {tr(" County")}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label htmlFor="moveIn" className="field-label">
-                  Move-in date
-                </label>
+                  {tr("Move-in date")}</label>
                 <input id="moveIn" type="date" className="field-input" value={prefs.moveInDate} onChange={(e) => setPrefs({ ...prefs, moveInDate: e.target.value })} />
               </div>
               <label className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-slate-300 px-4 py-2.5">
@@ -117,18 +114,18 @@ export function HousingClient() {
                   checked={prefs.needsTransit}
                   onChange={(e) => setPrefs({ ...prefs, needsTransit: e.target.checked })}
                 />
-                <span className="text-sm font-medium">I need access to public transit</span>
+                <span className="text-sm font-medium">{tr("I need access to public transit")}</span>
               </label>
             </form>
           </Card>
 
           <Card className="bg-sage-50/60">
-            <CardHeader icon={<Lightbulb className="h-5 w-5" />} title="Guidance for your search" />
+            <CardHeader icon={<Lightbulb className="h-5 w-5" />} title={tr("Guidance for your search")} />
             <ul className="space-y-2.5 text-sm text-ink-soft">
               {guidance.tips.map((t) => (
                 <li key={t} className="flex gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sage-500" aria-hidden />
-                  {t}
+                  {text(t)}
                 </li>
               ))}
             </ul>
@@ -146,9 +143,10 @@ export function HousingClient() {
 }
 
 function ResourceGroup({ title, items }: { title: string; items: ResourceMatch[] }) {
+  const { text } = useI18n();
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <h2 className="mb-3 text-lg font-semibold">{text(title)}</h2>
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((m) => (
           <ResourceCard key={m.resource.id} match={m} />
