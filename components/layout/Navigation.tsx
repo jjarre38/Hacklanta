@@ -15,6 +15,9 @@ const LINKS = [
   { href: "/employment", label: "Employment" },
 ];
 
+/** Pages that use the wider `container-wide` layout; the nav matches them so the logo lines up with the content. */
+const WIDE_PAGES = ["/dashboard"];
+
 export function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2 font-semibold text-ink">
@@ -35,9 +38,11 @@ export function Navigation() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  const container = WIDE_PAGES.some((p) => pathname.startsWith(p)) ? "container-wide" : "container-page";
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-      <nav className="container-page flex h-16 items-center justify-between" aria-label="Main">
+      <nav className={clsx(container, "flex h-16 items-center justify-between")} aria-label="Main">
         <Logo />
         <div className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
@@ -70,7 +75,7 @@ export function Navigation() {
       </nav>
       {open && (
         <div className="border-t border-slate-200 bg-white md:hidden">
-          <div className="container-page flex flex-col py-2">
+          <div className={clsx(container, "flex flex-col py-2")}>
             {LINKS.map((l) => (
               <Link
                 key={l.href}

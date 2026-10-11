@@ -18,6 +18,10 @@
   .container-page {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
+  /* Wider layout for data-dense pages (dashboard). The nav switches to this on those pages so edges line up. */
+  .container-wide {
+    @apply mx-auto w-full max-w-screen-2xl px-4 sm:px-8 lg:px-12;
+  }
   .field-label {
     @apply mb-1.5 block text-sm font-medium text-ink;
   }

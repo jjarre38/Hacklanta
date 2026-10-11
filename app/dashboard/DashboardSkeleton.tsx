@@ -1,6 +1,6 @@
 export function DashboardSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-screen-2xl animate-pulse px-4 py-10 sm:px-8 sm:py-12 lg:px-12" aria-busy="true" aria-label="Loading your plan">
+    <div className="container-wide animate-pulse py-10 sm:py-12" aria-busy="true" aria-label="Loading your plan">
       <div className="h-8 w-64 rounded-lg bg-slate-200" />
       <div className="mt-2 h-4 w-96 max-w-full rounded bg-slate-200" />
       <div className="mt-6 h-48 rounded-2xl bg-slate-200" />
